@@ -10,6 +10,7 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { UserModule } from './user/user.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { CommonModule } from './common/common.module.js';
 import provider from './admin/auth-provider.js';
 import options from './admin/options.js';
 
@@ -49,6 +50,7 @@ AdminJS.registerAdapter({ Database, Resource });
       },
     }),
     PrismaModule,
+    CommonModule,
     UserModule,
   ],
   controllers: [AppController],

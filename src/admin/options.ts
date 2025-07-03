@@ -55,7 +55,6 @@ const options: AdminJSOptions = {
     PermissionResource,
     RolePermissionResource,
     ProductCategoryResource,
-    ProductCategoryResource,
     ProductResource,
     VariantResource,
     WarehouseResource,

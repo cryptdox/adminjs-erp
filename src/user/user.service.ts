@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserInput } from './dto/create-user.input.js';
 import { UpdateUserInput } from './dto/update-user.input.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { CommonService } from '../common/common.service.js';
 
 @Injectable()
 export class UserService {
 
   constructor(
-    private prisma: PrismaService
+    private prisma: PrismaService,
+    private common: CommonService
   ) { }
 
   create(createUserInput: CreateUserInput) {
