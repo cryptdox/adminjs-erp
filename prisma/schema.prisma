@@ -424,7 +424,7 @@ model Partner {
   updatedAt              DateTime                @updatedAt
   account                Account?                @relation(fields: [accountId], references: [id])
   accountId              String?
-  ShareholderProfitShare ShareholderProfitShare?
+  ShareHolderProfitShare ShareHolderProfitShare?
   PurchaseOrder          PurchaseOrder[]
   SaleOrder              SaleOrder[]
   Expense                Expense[]
@@ -447,7 +447,7 @@ model Partner {
 //   CANCELLED
 // }
 
-model ShareholderProfitShare {
+model ShareHolderProfitShare {
   id           String    @id @default(uuid())
   partnerId    String    @unique
   partner      Partner   @relation(fields: [partnerId], references: [id])
