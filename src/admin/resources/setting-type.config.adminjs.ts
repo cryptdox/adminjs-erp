@@ -6,5 +6,10 @@ export const SettingTypeResource = {
     model: getModelByName('SettingType'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Configuration',
+      icon: 'Settings' 
+    },
+  },
 };

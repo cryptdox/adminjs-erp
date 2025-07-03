@@ -6,5 +6,10 @@ export const PurchaseOrderResource = {
     model: getModelByName('PurchaseOrder'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Order',
+      icon: 'ShoppingCart' 
+    },
+  },
 };

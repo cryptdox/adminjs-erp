@@ -6,5 +6,10 @@ export const PaymentResource = {
     model: getModelByName('Payment'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Payment',
+      icon: 'Airplay' 
+    },
+  },
 };

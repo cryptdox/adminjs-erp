@@ -6,5 +6,10 @@ export const PartnerResource = {
     model: getModelByName('Partner'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Finance',
+      icon: 'DollarSign' 
+    },
+  },
 };

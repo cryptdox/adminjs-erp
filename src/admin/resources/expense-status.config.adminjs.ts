@@ -6,5 +6,10 @@ export const ExpenseStatusResource = {
     model: getModelByName('ExpenseStatus'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Expense',
+      icon: 'DivideCircle' 
+    },
+  },
 };

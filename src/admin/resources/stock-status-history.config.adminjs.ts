@@ -6,5 +6,10 @@ export const StockStatusHistoryResource = {
     model: getModelByName('StockStatusHistory'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Inventory',
+      icon: 'Archive' 
+    },
+  },
 };

@@ -6,5 +6,10 @@ export const ProductResource = {
     model: getModelByName('Product'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Inventory',
+      icon: 'Archive' 
+    },
+  },
 };

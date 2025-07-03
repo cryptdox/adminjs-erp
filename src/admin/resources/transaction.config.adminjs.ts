@@ -6,5 +6,10 @@ export const TransactionResource = {
     model: getModelByName('Transaction'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Accounts',
+      icon: 'Book' 
+    },
+  },
 };

@@ -6,5 +6,10 @@ export const OrderStatusResource = {
     model: getModelByName('OrderStatus'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Order',
+      icon: 'ShoppingCart' 
+    },
+  },
 };

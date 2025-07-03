@@ -6,5 +6,10 @@ export const ShareHolderProfitShareResource = {
     model: getModelByName('ShareHolderProfitShare'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Finance',
+      icon: 'DollarSign' 
+    },
+  },
 };

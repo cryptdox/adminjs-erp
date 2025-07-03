@@ -6,5 +6,10 @@ export const PermissionResource = {
     model: getModelByName('Permission'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'HRMS',
+      icon: 'Users' 
+    },
+  },
 };

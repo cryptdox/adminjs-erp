@@ -6,5 +6,10 @@ export const UserResource = {
     model: getModelByName('User'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'HRMS',
+      icon: 'Users' 
+    },
+  },
 };

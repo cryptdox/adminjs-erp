@@ -6,5 +6,10 @@ export const VariantResource = {
     model: getModelByName('Variant'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Inventory',
+      icon: 'Archive' 
+    },
+  },
 };

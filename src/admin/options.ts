@@ -45,10 +45,23 @@ import { AuditLogResource } from './resources/audit-log.config.adminjs.js';
 import { SettingOptionResource } from './resources/setting-option.config.adminjs.js';
 import { SettingTypeResource } from './resources/setting-type.config.adminjs.js';
 import { SettingResource } from './resources/setting.config.adminjs.js';
+import AdminComponents from './components/admin.components.js';
+import applicationCOnfiguration from '../utils/config.js';
 
 const options: AdminJSOptions = {
   componentLoader,
   rootPath: '/admin',
+  assets: {
+    styles: ['/styles/index.css'],
+  },
+  branding: {
+    logo: '/images/logo.svg',
+    favicon: '/images/favicon.svg',
+    companyName: applicationCOnfiguration.companyName,
+  },
+  dashboard: {
+    component: AdminComponents.Dashboard,
+  },
   resources: [
     UserResource,
     RoleResource,
@@ -93,7 +106,7 @@ const options: AdminJSOptions = {
     AuditLogResource,
     SettingOptionResource,
     SettingTypeResource,
-    SettingResource
+    SettingResource,
   ],
   // databases: [],
 };

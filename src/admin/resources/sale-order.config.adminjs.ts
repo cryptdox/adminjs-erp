@@ -6,5 +6,10 @@ export const SaleOrderResource = {
     model: getModelByName('SaleOrder'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Order',
+      icon: 'ShoppingCart' 
+    },
+  },
 };

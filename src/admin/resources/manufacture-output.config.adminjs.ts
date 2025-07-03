@@ -6,5 +6,10 @@ export const ManufactureOutputResource = {
     model: getModelByName('ManufactureOutput'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Manufacture',
+      icon: 'Activity' 
+    },
+  },
 };

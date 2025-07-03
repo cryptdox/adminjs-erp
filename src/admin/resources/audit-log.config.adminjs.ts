@@ -6,5 +6,10 @@ export const AuditLogResource = {
     model: getModelByName('AuditLog'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Configuration',
+      icon: 'Settings' 
+    },
+  },
 };

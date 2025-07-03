@@ -6,5 +6,10 @@ export const LotResource = {
     model: getModelByName('Lot'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Inventory',
+      icon: 'Archive' 
+    },
+  },
 };

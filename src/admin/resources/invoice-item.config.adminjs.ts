@@ -6,5 +6,10 @@ export const InvoiceItemResource = {
     model: getModelByName('InvoiceItem'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Finance',
+      icon: 'DollarSign' 
+    },
+  },
 };

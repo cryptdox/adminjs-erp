@@ -6,5 +6,10 @@ export const LedgerEntryResource = {
     model: getModelByName('LedgerEntry'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Accounts',
+      icon: 'Book' 
+    },
+  },
 };

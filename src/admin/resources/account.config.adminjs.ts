@@ -6,5 +6,10 @@ export const AccountResource = {
     model: getModelByName('Account'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Accounts',
+      icon: 'Book' 
+    },
+  },
 };

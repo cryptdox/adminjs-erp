@@ -6,5 +6,10 @@ export const ProductCategoryResource = {
     model: getModelByName('ProductCategory'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Inventory',
+      icon: 'Archive' 
+    },
+  },
 };

@@ -6,5 +6,10 @@ export const WarehouseResource = {
     model: getModelByName('Warehouse'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Inventory',
+      icon: 'Archive' 
+    },
+  },
 };

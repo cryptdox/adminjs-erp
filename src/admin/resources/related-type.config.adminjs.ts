@@ -6,5 +6,10 @@ export const RelatedTypeResource = {
     model: getModelByName('RelatedType'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Payment',
+      icon: 'Airplay' 
+    },
+  },
 };

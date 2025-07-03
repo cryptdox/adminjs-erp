@@ -6,5 +6,10 @@ export const PurchaseOrderStatusHistoryResource = {
     model: getModelByName('PurchaseOrderStatusHistory'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Order',
+      icon: 'ShoppingCart' 
+    },
+  },
 };

@@ -314,7 +314,7 @@ model ManufactureOutput {
   updatedAt     DateTime    @updatedAt
 }
 
-// ACCOUNTS MANAGEMENT
+// Accounts
 
 // 🔑 Common types:
 // asset – cash, bank

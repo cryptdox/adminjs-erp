@@ -6,5 +6,10 @@ export const BatchResource = {
     model: getModelByName('Batch'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Inventory',
+      icon: 'Archive' 
+    },
+  },
 };

@@ -6,5 +6,10 @@ export const SaleOrderStatusHistoryResource = {
     model: getModelByName('SaleOrderStatusHistory'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Order',
+      icon: 'ShoppingCart' 
+    },
+  },
 };

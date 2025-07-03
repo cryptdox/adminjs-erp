@@ -6,5 +6,10 @@ export const InvoiceStatusHistoryResource = {
     model: getModelByName('InvoiceStatusHistory'),
     client: prisma,
   },
-  options: {},
+  options: {
+    navigation: { 
+      name: 'Finance',
+      icon: 'DollarSign' 
+    },
+  },
 };
