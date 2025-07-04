@@ -1,5 +1,5 @@
 const applicationCOnfiguration = {
-    companyName: 'Crypt Dox'
+    companyName: 'CryptDox'
 }
 
 export default applicationCOnfiguration

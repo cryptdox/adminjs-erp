@@ -11,5 +11,8 @@ export const ProductResource = {
       name: 'Inventory',
       icon: 'Archive' 
     },
+    listProperties: ['name', 'sku', 'category'],
+    filterProperties: ['name', 'sku', 'category'],
+    editProperties: ['name', 'sku', 'category'],
   },
 };

@@ -336,9 +336,70 @@ export class CommonService {
       });
     }
 
+    // PRODUCT CATEGORY SEED
     await this.prisma.productCategory.createMany({
-      data: [{ name: 'Electronics' }, { name: 'Groceries' }, { name: 'Clothing' }],
-      skipDuplicates: true,
+      data: [
+        { name: 'Mobile' },
+        { name: 'Accessories', parentId: undefined },
+        { name: 'Charger', parentId: undefined },
+      ],
+    });
+
+    // Fetch categories for foreign key use
+    const [mobileCategory] = await this.prisma.productCategory.findMany({
+      where: { name: 'Mobile' },
+    });
+
+    // UNIT SEED
+    await this.prisma.unit.createMany({
+      data: [
+        { name: 'kg', label: 'Kilogram', group: 'WEIGHT', isBase: true },
+        { name: 'g', label: 'Gram', group: 'WEIGHT' },
+        { name: 'liter', label: 'Liter', group: 'VOLUME', isBase: true },
+        { name: 'ml', label: 'Milliliter', group: 'VOLUME' },
+        { name: 'pcs', label: 'Piece', group: 'COUNT', isBase: true },
+      ],
+    });
+
+    // Fetch units for conversion linking
+    const [kg, g, liter, ml] = await Promise.all([
+      this.prisma.unit.findUnique({ where: { name: 'kg' } }),
+      this.prisma.unit.findUnique({ where: { name: 'g' } }),
+      this.prisma.unit.findUnique({ where: { name: 'liter' } }),
+      this.prisma.unit.findUnique({ where: { name: 'ml' } }),
+    ]);
+
+    // UNIT CONVERSIONS
+    await this.prisma.unitConversion.createMany({
+      data: [
+        { fromUnitId: kg.id, toUnitId: g.id, multiplier: 1000, note: '1 kg = 1000 g' },
+        { fromUnitId: g.id, toUnitId: kg.id, multiplier: 0.001, note: '1 g = 0.001 kg' },
+        { fromUnitId: liter.id, toUnitId: ml.id, multiplier: 1000, note: '1 L = 1000 mL' },
+        { fromUnitId: ml.id, toUnitId: liter.id, multiplier: 0.001, note: '1 mL = 0.001 L' },
+      ],
+    });
+
+    // PRODUCTS
+    const product = await this.prisma.product.create({
+      data: {
+        name: 'Samsung Galaxy S24',
+        sku: 'SGS24-BLK-128',
+        categoryId: mobileCategory.id,
+      },
+    });
+
+    // VARIANT
+    await this.prisma.variant.createMany({
+      data: [
+        {
+          productId: product.id,
+          attributes: { color: 'Black', storage: '128GB' },
+        },
+        {
+          productId: product.id,
+          attributes: { color: 'Silver', storage: '256GB' },
+        },
+      ],
     });
 
     await this.prisma.warehouse.createMany({

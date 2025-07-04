@@ -105,10 +105,52 @@ model ProductCategory {
   updatedAt DateTime          @updatedAt
 }
 
+enum UnitGroup {
+  WEIGHT
+  VOLUME
+  COUNT
+}
+
+model Unit {
+  id          String     @id @default(uuid())
+  name        String     @unique // "kg", "g", "liter", "ml", etc.
+  label       String // "Kilogram", "Gram", etc.
+  group       UnitGroup? // "weight", "volume", "count"
+  isBase      Boolean    @default(false) // is it the base unit in its group?
+  minValue    Float? // Optional: e.g., 0.5
+  maxValue    Float? // Optional: e.g., 100
+  step        Float? // e.g., 0.5, 1, 10 (for UI increment control)
+  description String?
+  isActive    Boolean    @default(true)
+  isAllowed   Boolean    @default(true)
+  isDeleted   Boolean    @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  conversionsFrom UnitConversion[] @relation("FromUnit")
+  conversionsTo   UnitConversion[] @relation("ToUnit")
+}
+
+model UnitConversion {
+  id         String   @id @default(uuid())
+  fromUnitId String
+  toUnitId   String
+  multiplier Float // e.g., 1000 means 1 kg = 1000 g
+  note       String? // Optional explanation
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  fromUnit Unit @relation("FromUnit", fields: [fromUnitId], references: [id])
+  toUnit   Unit @relation("ToUnit", fields: [toUnitId], references: [id])
+
+  @@unique([fromUnitId, toUnitId])
+}
+
 model Product {
   id         String           @id @default(uuid())
   name       String
-  sku        String           @unique
+  sku        String?
   categoryId String?
   category   ProductCategory? @relation(fields: [categoryId], references: [id])
   isActive   Boolean          @default(true)

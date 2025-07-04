@@ -7,9 +7,12 @@ export const ProductCategoryResource = {
     client: prisma,
   },
   options: {
-    navigation: { 
+    navigation: {
       name: 'Inventory',
       icon: 'Archive' 
     },
+    listProperties: ['name', 'parent'],
+    filterProperties: ['name', 'parent'],
+    editProperties: ['name', 'parent'],
   },
 };

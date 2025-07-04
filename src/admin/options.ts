@@ -47,6 +47,8 @@ import { SettingTypeResource } from './resources/setting-type.config.adminjs.js'
 import { SettingResource } from './resources/setting.config.adminjs.js';
 import AdminComponents from './components/admin.components.js';
 import applicationCOnfiguration from '../utils/config.js';
+import { UnitResource } from './resources/unit.config.adminjs.js';
+import { UnitConversionResource } from './resources/unit-conversion.config.adminjs.js';
 
 const options: AdminJSOptions = {
   componentLoader,
@@ -67,6 +69,8 @@ const options: AdminJSOptions = {
     RoleResource,
     PermissionResource,
     RolePermissionResource,
+    UnitResource,
+    UnitConversionResource,
     ProductCategoryResource,
     ProductResource,
     VariantResource,
