@@ -54,7 +54,7 @@ const options: AdminJSOptions = {
   componentLoader,
   rootPath: '/admin',
   assets: {
-    styles: ['/styles/index.css'],
+    styles: ['/styles/index.css', '/styles/output.css'],
   },
   branding: {
     logo: '/images/logo.svg',
