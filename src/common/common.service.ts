@@ -393,11 +393,11 @@ export class CommonService {
       data: [
         {
           productId: product.id,
-          attributes: { color: 'Black', storage: '128GB' },
+          attributes: { name: 'BLACK-128', color: 'Black', storage: '128GB' },
         },
         {
           productId: product.id,
-          attributes: { color: 'Silver', storage: '256GB' },
+          attributes: { name: 'SILVER-256', color: 'Silver', storage: '256GB' },
         },
       ],
     });
@@ -432,16 +432,123 @@ export class CommonService {
     });
 
     // Seed default account types (basic chart of accounts)
-    await this.prisma.accountType.createMany({
-      data: [
-        { name: 'ASSET', description: 'Cash, bank, and other assets' },
-        { name: 'LIABILITY', description: 'Loans, payables, etc.' },
-        { name: 'EQUITY', description: 'Owner capital and retained earnings' },
-        { name: 'REVENUE', description: 'Sales income and other revenues' },
-        { name: 'EXPENSE', description: 'Operating and administrative expenses' },
-      ],
-      skipDuplicates: true,
-    });
+    // await this.prisma.accountType.createMany({
+    //   data: [
+    //     { name: 'ASSET', description: 'Cash, bank, and other assets' },
+    //     { name: 'LIABILITY', description: 'Loans, payables, etc.' },
+    //     { name: 'EQUITY', description: 'Owner capital and retained earnings' },
+    //     { name: 'REVENUE', description: 'Sales income and other revenues' },
+    //     { name: 'EXPENSE', description: 'Operating and administrative expenses' },
+    //   ],
+    //   skipDuplicates: true,
+    // });
+    // 1. Create parent account types
+    const parents = await Promise.all([
+      this.prisma.accountType.create({
+        data: {
+          name: 'ASSET',
+          description: 'Represents company-owned resources such as cash, inventory, and property',
+        },
+      }),
+      this.prisma.accountType.create({
+        data: {
+          name: 'LIABILITY',
+          description: 'Obligations the company owes to external parties, such as loans or payables',
+        },
+      }),
+      this.prisma.accountType.create({
+        data: { name: 'EQUITY', description: 'Owner’s residual interest after liabilities are subtracted from assets' },
+      }),
+      this.prisma.accountType.create({
+        data: {
+          name: 'INCOME',
+          description: 'Revenue generated from core operations such as product sales or services',
+        },
+      }),
+      this.prisma.accountType.create({
+        data: {
+          name: 'EXPENSE',
+          description: 'Costs incurred in running daily business operations, like rent and salaries',
+        },
+      }),
+      this.prisma.accountType.create({
+        data: {
+          name: 'PAYABLE',
+          description: 'Payable Accounts',
+        },
+      }),
+      this.prisma.accountType.create({
+        data: {
+          name: 'RECEIVABLE',
+          description: 'Accounts Receivable',
+        },
+      }),
+      this.prisma.accountType.create({
+        data: {
+          name: 'CAPITAL',
+          description: 'Capital Accounts',
+        },
+      }),
+    ]);
+
+    // Map parent names to their generated IDs
+    // const parentMap = parents.reduce(
+    //   (acc, parent) => {
+    //     acc[parent.name] = parent.id;
+    //     return acc;
+    //   },
+    //   {} as Record<string, string>
+    // );
+
+    // // 2. Create child account types linked to parents
+    // await this.prisma.accountType.createMany({
+    //   data: [
+    //     // Children of ASSET
+    //     { name: 'Current Asset', parentId: parentMap['ASSET'] },
+    //     { name: 'Fixed Asset', parentId: parentMap['ASSET'] },
+
+    //     // Children of LIABILITY
+    //     { name: 'Current Liability', parentId: parentMap['LIABILITY'] },
+    //     { name: 'Long-term Liability', parentId: parentMap['LIABILITY'] },
+
+    //     // Children of EQUITY
+    //     { name: 'Owner Capital', parentId: parentMap['EQUITY'] },
+    //     { name: 'Retained Earnings', parentId: parentMap['EQUITY'] },
+
+    //     // Children of INCOME
+    //     { name: 'Sales Revenue', parentId: parentMap['INCOME'] },
+    //     { name: 'Service Revenue', parentId: parentMap['INCOME'] },
+
+    //     // Children of EXPENSE
+    //     { name: 'Salary Expense', parentId: parentMap['EXPENSE'] },
+    //     { name: 'Rent Expense', parentId: parentMap['EXPENSE'] },
+    //     { name: 'Utilities Expense', parentId: parentMap['EXPENSE'] },
+    //   ],
+    //   skipDuplicates: true,
+    // });
+
+    // const currentLiability = await this.prisma.accountType.create({
+    //   data: { name: 'Current Liability', parentId: parentMap['LIABILITY'] },
+    // });
+
+    // const longTermLiability = await this.prisma.accountType.create({
+    //   data: { name: 'Long-term Liability', parentId: parentMap['LIABILITY'] },
+    // });
+
+    // // Children of Current Liability
+    // const accountsPayable = await this.prisma.accountType.create({
+    //   data: { name: 'Accounts Payable', parentId: currentLiability.id },
+    // });
+
+    // await this.prisma.accountType.createMany({
+    //   data: [
+    //     { name: "Supplier Payable ['LIABILITY']", parentId: accountsPayable.id },
+    //     { name: "Other Payable ['LIABILITY']", parentId: accountsPayable.id },
+    //     { name: "Accrued Expenses ['LIABILITY']", parentId: currentLiability.id },
+    //     { name: "Notes Payable ['LIABILITY']", parentId: longTermLiability.id },
+    //     { name: "Mortgage Payable ['LIABILITY']", parentId: longTermLiability.id },
+    //   ],
+    // });
 
     // Seed default invoice types
     await this.prisma.invoiceType.createMany({

@@ -11,5 +11,7 @@ export const AccountTypeResource = {
       name: 'Accounts',
       icon: 'Book' 
     },
+    listProperties: ['name', 'parent', 'description'],
+    editProperties: ['name', 'parent', 'description'],
   },
 };

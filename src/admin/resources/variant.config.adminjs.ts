@@ -11,8 +11,8 @@ export const VariantResource = {
       name: 'Inventory',
       icon: 'Archive' 
     },
-    listProperties: ['product', 'attributes'],
-    filterProperties: ['product', 'attributes'],
-    editProperties: ['product', 'attributes'],
+    listProperties: ['name', 'product', 'attributes'],
+    filterProperties: ['name', 'product', 'attributes'],
+    editProperties: ['name', 'product', 'attributes'],
   },
 };

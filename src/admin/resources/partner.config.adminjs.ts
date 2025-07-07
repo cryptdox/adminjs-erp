@@ -12,7 +12,49 @@ export const PartnerResource: ResourceWithOptions = {
       name: 'Finance',
       icon: 'DollarSign',
     },
+    filterProperties: ['type'],
+    listProperties: ['type', 'name', 'phone', 'account'],
+    editProperties: ['type', 'name', 'email', 'phone', 'address', 'nid'],
+    // showProperties: [],
     actions: {
+      new: {
+        // before:{
+
+        // },
+        after: async (response, request, context) => {
+          const partnerId = response.record?.params?.id;
+          const partnerName = response.record?.params?.name;
+          const partnerType = response.record?.params?.type;
+
+          if (!partnerId || !partnerType) return response;
+
+          const typeMap: Record<string, string> = {
+            SUPPLIER: 'PAYABLE',
+            CUSTOMER: 'RECEIVABLE',
+            SHAREHOLDER: 'CAPITAL',
+          };
+          const accountType = await prisma.accountType.findFirst({
+            where: {
+              name: typeMap[partnerType],
+            },
+          });
+          const account = await prisma.account.create({
+            data: {
+              name: `${partnerName} - ${typeMap[partnerType]} - Account`,
+              typeId: accountType.id,
+            },
+          });
+          await prisma.partner.update({
+            data: {
+              accountId: account.id,
+            },
+            where: {
+              id: partnerId,
+            },
+          });
+          return response;
+        },
+      },
       listSuppliers: {
         actionType: 'resource',
         isVisible: false,
