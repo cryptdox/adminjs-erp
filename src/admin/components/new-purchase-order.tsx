@@ -42,16 +42,25 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     setGlobalDiscountType,
     totalExpenseAmount,
     grandTotal,
+    totalPaidAmount,
+    totalRemainAmount,
     handleCancel,
     handleOrder,
     handleFullPurchase,
   } = useNewPurchaseOrder(props);
 
-  const [suppliers, setSuppliers] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [suppliers, setSuppliers] = useState<{
+    id: string;
+    name: string;
+  }[]>([]);
+  const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
   const [variantMap, setVariantMap] = useState<Record<string, Variant[]>>({});
-  const [warehouses, setWarehouses] = useState([]);
-  const [expenseTypes, setExpenseTypes] = useState([]);
+  const [warehouses, setWarehouses] = useState<{ id: string; name: string }[]>(
+    []
+  );
+  const [expenseTypes, setExpenseTypes] = useState<{ id: string; name: string }[]>(
+    []
+  );
   const [variantLoader, setVariantLoader] = useState<boolean>(false);
 
   useEffect(() => {
@@ -133,9 +142,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
       {/* Stock Items */}
       <h3 className="!text-lg !mb-4 !text-gray-800">Stock Items</h3>
       {stockItems.map((item) => {
-        const variants = item.productId
-          ? variantMap[item.productId] || []
-          : [];
+        const variants = item.productId ? variantMap[item.productId] || [] : [];
         const calculatedUnit = calculateExpensePerUnit(item).toFixed(2);
         return (
           <div
@@ -257,15 +264,6 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
 
             <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
               <div>
-                <Label>Total Price</Label>
-                <Input
-                  type="number"
-                  value={item.totalPrice}
-                  readOnly
-                  className="!w-full"
-                />
-              </div>
-              <div>
                 <Label>Paid Amount</Label>
                 <Input
                   type="number"
@@ -273,6 +271,19 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   onChange={(e) =>
                     updateStockItem(item.id, {
                       paid: Number(e.target.value),
+                    })
+                  }
+                  className="!w-full"
+                />
+              </div>
+              <div>
+                <Label>Received Quantity</Label>
+                <Input
+                  type="number"
+                  value={item.receivedQuantity}
+                  onChange={(e) =>
+                    updateStockItem(item.id, {
+                      receivedQuantity: Number(e.target.value),
                     })
                   }
                   className="!w-full"
@@ -300,7 +311,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   value={item.discountType || ""}
                   onChange={(selected) =>
                     updateDiscountType(item.id, {
-                      discountType: selected || "",
+                      discountType: selected || { value: "amount", label: "$ - Amount" },
                     })
                   }
                   options={[
@@ -313,6 +324,28 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               </div>
             </div>
 
+
+            <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
+              <div>
+                <Label>Total Price</Label>
+                <Input
+                  type="number"
+                  value={item.totalPrice}
+                  readOnly
+                  className="!w-full !bg-gray-100 !text-green-700"
+                />
+              </div>
+              <div>
+                <Label>After Discount</Label>
+                <Input
+                  type="number"
+                  value={item.totalPrice - (item.discountType.value == "percent" ? (Number(item.totalPrice * item.discount) / 100) : Number(item.discount.toFixed(2)))}
+                  readOnly
+                  className="!w-full !bg-gray-100 !text-green-700"
+                />
+              </div>
+            </div>
+
             <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
               <div>
                 <Label>Remain</Label>
@@ -320,11 +353,11 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   type="number"
                   value={item.remain}
                   readOnly
-                  className="!w-full"
+                  className="!w-full !bg-gray-100 !text-green-700"
                 />
               </div>
               <div>
-                <Label>Cost / Unit</Label>
+                <Label>Current - Cost / Unit</Label>
                 <Input
                   type="text"
                   readOnly
@@ -338,6 +371,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               <Button
                 variant="danger"
                 className="!mt-4"
+                // className="!w-full"
                 onClick={() => removeStockItem(item.id)}
               >
                 Remove
@@ -467,7 +501,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
       </div>
 
       {/* Totals Summary */}
-      <div className="!w-full md:!w-1/2 md:!ml-auto !grid !grid-rows-5 !grid-cols-3 !gap-y-4 !border !border-gray-300 !rounded-md !p-4 !my-4 !bg-gray-50">
+      <div className="!w-full md:!w-1/2 md:!ml-auto !grid !grid-rows-7 !grid-cols-3 !gap-y-4 !border !border-gray-300 !rounded-md !p-4 !my-4 !bg-gray-50">
         <div className="!text-left">Total Stock</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-red-600">
@@ -483,7 +517,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
         <div className="!text-left">Global Discount</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-purple-600">
-          {globalDiscountType === "percent"
+          {globalDiscountType.value === "percent"
             ? ((totalStockAmount - totalItemDiscount) * globalDiscount) / 100
             : globalDiscount.toFixed(2)}
         </div>
@@ -498,6 +532,18 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
         <div className="!text-center">:</div>
         <div className="!text-right !text-green-600">
           {grandTotal.toFixed(2)}
+        </div>
+
+        <div className="!text-left">Total Paid</div>
+        <div className="!text-center">:</div>
+        <div className="!text-right !text-blue-600">
+          {totalPaidAmount.toFixed(2)}
+        </div>
+
+        <div className="!text-left">Total Remain</div>
+        <div className="!text-center">:</div>
+        <div className="!text-right !text-orange-600">
+          {totalRemainAmount.toFixed(2)}
         </div>
       </div>
 

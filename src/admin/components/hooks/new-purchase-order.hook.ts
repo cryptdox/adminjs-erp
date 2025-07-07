@@ -1,5 +1,5 @@
-import { BasePropertyProps } from 'adminjs';
-import { useState, useEffect } from 'react';
+import { BasePropertyProps } from "adminjs";
+import { useState, useEffect } from "react";
 
 export interface StockItemInput {
   id: string;
@@ -12,9 +12,10 @@ export interface StockItemInput {
   quantity: number;
   totalPrice: number;
   paid: number;
+  receivedQuantity: number;
   discount: number;
   remain: number;
-  discountType: 'percent' | 'amount' | '';
+  discountType: { value: "amount", label: "$ - Amount" } | { value: "percent", label: "% - Percent" };
 }
 
 export interface ExpenseInput {
@@ -29,7 +30,7 @@ export interface ExpenseInput {
 export interface Partner {
   id: string;
   name: string;
-  type: 'SUPPLIER' | 'CUSTOMER' | 'SHAREHOLDER';
+  type: "SUPPLIER" | "CUSTOMER" | "SHAREHOLDER";
 }
 
 export interface Product {
@@ -54,26 +55,32 @@ export interface ExpenseType {
 }
 
 export const useNewPurchaseOrder = (props: BasePropertyProps) => {
-  const [orderNumber, setOrderNumber] = useState('');
+  const [orderNumber, setOrderNumber] = useState("");
   const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null);
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState("");
   const [stockItems, setStockItems] = useState<StockItemInput[]>([]);
   const [expenses, setExpenses] = useState<ExpenseInput[]>([]);
 
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
-  const [globalDiscountType, setGlobalDiscountType] = useState<'amount' | 'percent'>('amount');
+  const [globalDiscountType, setGlobalDiscountType] = useState<
+    { value: "amount", label: "$ - Amount" } | { value: "percent", label: "% - Percent" }
+  >({ value: "amount", label: "$ - Amount" });
 
+  // Initialize order number once
   useEffect(() => {
-    const newOrderNum = `PO-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-001`;
+    const newOrderNum = `PO-${new Date()
+      .toISOString()
+      .slice(0, 10)
+      .replace(/-/g, "")}-001`;
     setOrderNumber(newOrderNum);
   }, []);
 
-  // ========== Fetchers ==========
+  // Fetchers for data
   const fetchSuppliers = async (): Promise<Partner[]> => {
-    const res = await fetch('/admin/api/resources/Partner/actions/list', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filters: { type: 'SUPPLIER' }, page: 1, perPage: 100 }),
+    const res = await fetch("/admin/api/resources/Partner/actions/list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filters: { type: "SUPPLIER" }, page: 1, perPage: 100 }),
     });
     const result = await res.json();
     return result.records.map((r: any) => ({
@@ -84,9 +91,9 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   };
 
   const fetchProducts = async (): Promise<Product[]> => {
-    const res = await fetch('/admin/api/resources/Product/actions/list', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/admin/api/resources/Product/actions/list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ page: 1, perPage: 100 }),
     });
     const result = await res.json();
@@ -97,9 +104,9 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   };
 
   const fetchVariants = async (productId: string): Promise<Variant[]> => {
-    const res = await fetch('/admin/api/resources/Variant/actions/list', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/admin/api/resources/Variant/actions/list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         filters: { productId },
         page: 1,
@@ -115,9 +122,9 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   };
 
   const fetchWarehouses = async (): Promise<Warehouse[]> => {
-    const res = await fetch('/admin/api/resources/Warehouse/actions/list', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/admin/api/resources/Warehouse/actions/list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ page: 1, perPage: 100 }),
     });
     const result = await res.json();
@@ -128,88 +135,107 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   };
 
   const fetchExpenseTypes = (): ExpenseType[] => [
-    { id: 'et1', name: 'Transport' },
-    { id: 'et2', name: 'Custom Duty' },
+    { id: "et1", name: "Transport" },
+    { id: "et2", name: "Custom Duty" },
   ];
 
-  // ========== Handlers ==========
+  // Add a new stock item with default discount type = 'amount'
   const addStockItem = () => {
     setStockItems((prev) => [
       ...prev,
       {
         id: `stockitem-${Date.now()}`,
-        productId: '',
-        variantId: '',
-        warehouseId: '',
-        manufactureDate: '',
-        expiryDate: '',
+        productId: "",
+        variantId: "",
+        warehouseId: "",
+        manufactureDate: "",
+        expiryDate: "",
         unitPrice: 0,
         quantity: 0,
+        receivedQuantity: 0,
         totalPrice: 0,
         paid: 0,
         discount: 0,
         remain: 0,
-        discountType: '',
+        discountType: { value: "amount", label: "$ - Amount" },
       },
     ]);
   };
 
+  // Remove stock item by id
   const removeStockItem = (id: string) => {
     setStockItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  // Update stock item and calculate totals & remain
   const updateStockItem = (id: string, data: Partial<StockItemInput>) => {
     setStockItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
 
         const updated = { ...item, ...data };
+
+        // Calculate gross = unitPrice * quantity
         const gross = updated.unitPrice * updated.quantity;
+
+        // Calculate discount properly based on discountType
         const discount =
-          updated.discountType === 'percent'
+          updated.discountType.value === "percent"
             ? (gross * updated.discount) / 100
             : updated.discount;
 
-        const total = gross;
-        const remain = total - discount - updated.paid;
+        // totalPrice = gross before discount (kept as gross here for clarity)
+        // or you can set totalPrice = gross - discount, depending on your logic
+        const totalPrice = gross;
+
+        // remain = totalPrice - discount - paid
+        const remain = totalPrice - discount - updated.paid;
 
         return {
           ...updated,
-          totalPrice: total,
-          remain: remain,
+          totalPrice,
+          remain,
         };
       })
     );
   };
 
-  const updateDiscountType = (id: string, data: { discountType: 'percent' | 'amount' | '' }) => {
+  // Update discount type for stock item
+  const updateDiscountType = (
+    id: string,
+    data: { discountType:{ value: "amount", label: "$ - Amount" } | { value: "percent", label: "% - Percent" } }
+  ) => {
     updateStockItem(id, data);
   };
 
+  // Add new expense
   const addExpenseItem = () => {
     setExpenses((prev) => [
       ...prev,
       {
         id: `expenseitem-${Date.now()}`,
-        partnerId: '',
-        expenseTypeId: '',
+        partnerId: "",
+        expenseTypeId: "",
         totalAmount: 0,
         paidAmount: 0,
-        note: '',
+        note: "",
       },
     ]);
   };
 
+  // Remove expense by id
   const removeExpenseItem = (id: string) => {
     setExpenses((prev) => prev.filter((item) => item.id !== id));
   };
 
+  // Update expense item
   const updateExpenseItem = (id: string, data: Partial<ExpenseInput>) => {
     setExpenses((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...data } : item))
     );
   };
 
+  // Calculate expense per unit for a stock item (unitPrice + expense per quantity)
   const calculateExpensePerUnit = (item: StockItemInput): number => {
     const totalExpense = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
     const totalQty = stockItems.reduce((sum, i) => sum + i.quantity, 0);
@@ -217,29 +243,56 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   };
 
   // ========== Calculations ==========
-  const totalStockAmount = stockItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
 
+  // Sum of (unitPrice * quantity) for all stock items (gross)
+  const totalStockAmount = stockItems.reduce(
+    (sum, i) => sum + i.unitPrice * i.quantity,
+    0
+  );
+
+  // Sum of all discounts on stock items (calculated based on type)
   const totalItemDiscount = stockItems.reduce((sum, i) => {
     const gross = i.unitPrice * i.quantity;
-    const discount = i.discountType === 'percent' ? (gross * i.discount) / 100 : i.discount;
+    const discount =
+      i.discountType.value == "percent" ? (gross * i.discount) / 100 : i.discount;
     return sum + discount;
   }, 0);
 
-  const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
+  // Sum of totalAmount of all expenses
+  const totalExpenseAmount = expenses.reduce(
+    (sum, e) => sum + e.totalAmount,
+    0
+  );
 
+  // Sum of paid amounts on stock items
+  const totalStockPaid = stockItems.reduce((sum, i) => sum + i.paid, 0);
+
+  // Sum of paid amounts on expenses
+  const totalExpensePaid = expenses.reduce((sum, e) => sum + e.paidAmount, 0);
+
+  // Total paid (stock + expense)
+  const totalPaidAmount = totalStockPaid + totalExpensePaid;
+
+  // Global discount amount calculated from globalDiscount and type
   const globalDiscountAmount =
-    globalDiscountType === 'percent'
+    globalDiscountType.value == "percent"
       ? ((totalStockAmount - totalItemDiscount) * globalDiscount) / 100
       : globalDiscount;
 
-  const grandTotal = totalStockAmount - totalItemDiscount - globalDiscountAmount + totalExpenseAmount;
+  // Grand total = stock total - item discounts - global discount + expenses
+  const grandTotal =
+    totalStockAmount - totalItemDiscount - globalDiscountAmount + totalExpenseAmount;
 
+  // Total remain amount = grand total - total paid amount
+  const totalRemainAmount = grandTotal - totalPaidAmount;
+
+  // Dummy handlers for UI
   const handleCancel = () => {
-    console.log('Cancelled');
+    console.log("Cancelled");
   };
 
   const handleOrder = () => {
-    console.log('Order Submitted', {
+    console.log("Order Submitted", {
       orderNumber,
       selectedSupplier,
       note,
@@ -247,11 +300,14 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
       expenses,
       globalDiscount,
       globalDiscountType,
+      totalPaidAmount,
+      totalRemainAmount,
+      grandTotal,
     });
   };
 
   const handleFullPurchase = () => {
-    console.log('Full Purchase Submitted');
+    console.log("Full Purchase Submitted");
   };
 
   return {
@@ -284,6 +340,8 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     totalItemDiscount,
     globalDiscountAmount,
     grandTotal,
+    totalPaidAmount,
+    totalRemainAmount,
     handleCancel,
     handleOrder,
     handleFullPurchase,
