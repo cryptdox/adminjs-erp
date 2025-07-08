@@ -15,6 +15,10 @@
   display: none !important;
 }
 
+.dbPXLf {
+  display: none !important;
+}
+
 /* PURCHASE ORDER */
 .custom-partner-select > div {
   background-color: #f0fdf4 !important; /* soft greenish */
