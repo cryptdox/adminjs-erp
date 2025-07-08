@@ -99,21 +99,22 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
 
   return (
     <div className="!w-full !p-6 !bg-white !rounded-md !shadow-md">
-      <h2 className="!text-2xl !font-bold !mb-6 !text-gray-800">
-        New Purchase Order
+      <h2 className="!text-3xl !font-semibold !mb-6 !text-indigo-500 !pb-3">
+        🛒 New Purchase Order
       </h2>
+
 
       {/* Order Number and Supplier */}
       <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mb-6">
         <div>
-          <Label>Order Number</Label>
-          <Label className="!w-full !text-md !font-semibold !p-2 !bg-gray-100 !text-gray-700">
+          <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Order Number</Label>
+          <div className="!w-full !text-md !font-semibold !p-2 !rounded-md !bg-indigo-50 !text-indigo-800 border border-indigo-200 shadow-sm">
             {orderNumber}
-          </Label>
+          </div>
         </div>
 
         <div>
-          <Label>Supplier</Label>
+          <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Supplier</Label>
           <Select
             value={selectedSupplier || ""}
             onChange={(selected) => setSelectedSupplier(selected || "")}
@@ -121,37 +122,44 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               value: sup.id,
               label: sup.name,
             }))}
+            isDisabled={!suppliers.length}
+            isLoading={!suppliers.length}
             placeholder="Select Supplier"
-            className="!w-full"
+            className="!w-full custom-partner-select !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
           />
         </div>
       </div>
 
       {/* Note */}
       <div className="!mb-6">
-        <Label>Note</Label>
+        <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Note</Label>
         <TextArea
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          rows={2}
-          className="!w-full !p-2 !border !rounded-md !resize-none"
+          rows={3}
           placeholder="Optional notes"
+          className="!w-full !p-3 !border !border-gray-300 !rounded-md !resize-none focus:!border-indigo-500 focus:!ring-1 focus:!ring-indigo-300 !transition !duration-200 !ease-in-out !bg-white !text-gray-800"
         />
       </div>
 
+
       {/* Stock Items */}
-      <h3 className="!text-lg !mb-4 !text-gray-800">Stock Items</h3>
+      <h3 className="!text-xl !font-semibold !mb-4 !text-indigo-500 !pb-2">
+        Stock Items
+      </h3>
+
       {stockItems.map((item) => {
         const variants = item.productId ? variantMap[item.productId] || [] : [];
         const calculatedUnit = calculateExpensePerUnit(item).toFixed(2);
         return (
           <div
             key={item.id}
-            className="!border !border-gray-300 !rounded-md !p-4 !mb-4 !bg-gray-50"
+            className="!border !border-indigo-200 !rounded-xl !p-5 !mb-6 !bg-indigo-50/20 shadow-sm transition hover:shadow-md"
           >
+            {/* 1st row: Product, Variant, Warehouse */}
             <div className="!grid !grid-cols-1 md:!grid-cols-3 !gap-4">
               <div>
-                <Label>Product</Label>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Product</Label>
                 <Select
                   value={item.productId || ""}
                   onChange={(selected) =>
@@ -165,12 +173,12 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                     label: p.name,
                   }))}
                   placeholder="Select Product"
-                  className="!w-full"
+                  className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
                 />
               </div>
 
               <div>
-                <Label>Variant</Label>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Variant</Label>
                 <Select
                   value={item.variantId || ""}
                   onChange={(selected) =>
@@ -183,12 +191,12 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   isDisabled={!item.productId}
                   isLoading={variantLoader}
                   placeholder="Select Variant"
-                  className="!w-full"
+                  className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
                 />
               </div>
 
               <div>
-                <Label>Warehouse</Label>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Warehouse</Label>
                 <Select
                   value={item.warehouseId || ""}
                   onChange={(selected) =>
@@ -199,14 +207,16 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                     label: w.name,
                   }))}
                   placeholder="Select Warehouse"
-                  className="!w-full"
+                  className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
                 />
               </div>
             </div>
 
+
+            {/* 2nd row: Manufacture + Expiry Date */}
             <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
               <div>
-                <Label>Manufacture Date</Label>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Manufacture Date</Label>
                 <Input
                   type="date"
                   value={item.manufactureDate}
@@ -215,11 +225,11 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       manufactureDate: e.target.value,
                     })
                   }
-                  className="!w-full"
+                  className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-emerald-500 !transition"
                 />
               </div>
               <div>
-                <Label>Expiry Date</Label>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Expiry Date</Label>
                 <Input
                   type="date"
                   value={item.expiryDate}
@@ -228,14 +238,15 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       expiryDate: e.target.value,
                     })
                   }
-                  className="!w-full"
+                  className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-rose-500 !transition"
                 />
               </div>
             </div>
 
+            {/* 3rd row: Unit Price + Quantity */}
             <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
               <div>
-                <Label>Unit Price</Label>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Unit Price</Label>
                 <Input
                   type="number"
                   value={item.unitPrice}
@@ -244,11 +255,11 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       unitPrice: Number(e.target.value),
                     })
                   }
-                  className="!w-full"
+                  className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
                 />
               </div>
               <div>
-                <Label>Quantity</Label>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Quantity</Label>
                 <Input
                   type="number"
                   value={item.quantity}
@@ -257,43 +268,14 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       quantity: Number(e.target.value),
                     })
                   }
-                  className="!w-full"
+                  className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
                 />
               </div>
             </div>
 
             <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
               <div>
-                <Label>Paid Amount</Label>
-                <Input
-                  type="number"
-                  value={item.paid}
-                  onChange={(e) =>
-                    updateStockItem(item.id, {
-                      paid: Number(e.target.value),
-                    })
-                  }
-                  className="!w-full"
-                />
-              </div>
-              <div>
-                <Label>Received Quantity</Label>
-                <Input
-                  type="number"
-                  value={item.receivedQuantity}
-                  onChange={(e) =>
-                    updateStockItem(item.id, {
-                      receivedQuantity: Number(e.target.value),
-                    })
-                  }
-                  className="!w-full"
-                />
-              </div>
-            </div>
-
-            <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
-              <div>
-                <Label>Discount</Label>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Discount</Label>
                 <Input
                   type="number"
                   value={item.discount}
@@ -302,16 +284,20 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       discount: Number(e.target.value),
                     })
                   }
-                  className="!w-full"
+                  className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-yellow-400 !transition"
                 />
               </div>
+
               <div>
-                <Label>Discount Type</Label>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Discount Type</Label>
                 <Select
                   value={item.discountType || ""}
                   onChange={(selected) =>
                     updateDiscountType(item.id, {
-                      discountType: selected || { value: "amount", label: "$ - Amount" },
+                      discountType: selected || {
+                        value: "amount",
+                        label: "$ - Amount",
+                      },
                     })
                   }
                   options={[
@@ -323,55 +309,116 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                 />
               </div>
             </div>
+            <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
+              <div>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Paid Amount</Label>
+                <div className="!flex !items-center !gap-3">
+                  <Input
+                    type="number"
+                    value={item.paid}
+                    onChange={(e) => {
+                      const inputValue = Number(e.target.value);
+                      const cappedValue = Math.min(inputValue, item.discountPrice);
+                      updateStockItem(item.id, { paid: cappedValue });
+                    }}
+                    max={item.discountPrice}
+                    className="!w-full !border border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
+                  />
+                  <div className="!flex !items-center !gap-1">
+                    <input
+                      type="checkbox"
+                      id={`auto-paid-${item.id}`}
+                      checked={item.paid === item.discountPrice}
+                      onChange={(e) =>
+                        updateStockItem(item.id, {
+                          paid: e.target.checked ? item.discountPrice : 0,
+                        })
+                      }
+                      className="!w-4 !h-4 !accent-indigo-600"
+                    />
+                    <label htmlFor={`auto-paid-${item.id}`} className="!text-sm !text-gray-600">All</label>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Quantity</Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="number"
+                    value={item.receivedQuantity}
+                    onChange={(e) => {
+                      const inputValue = Number(e.target.value);
+                      const cappedValue = Math.min(inputValue, item.quantity);
+                      updateStockItem(item.id, { receivedQuantity: cappedValue });
+                    }}
+                    max={item.quantity}
+                    className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
+                  />
+                  <div className="!flex !items-center !gap-1">
+                    <input
+                      type="checkbox"
+                      id={`auto-receive-${item.id}`}
+                      checked={item.receivedQuantity === item.quantity}
+                      onChange={(e) =>
+                        updateStockItem(item.id, {
+                          receivedQuantity: e.target.checked ? item.quantity : 0,
+                        })
+                      }
+                      className="!w-4 !h-4 !accent-indigo-600"
+                    />
+                    <label htmlFor={`auto-receive-${item.id}`} className="!text-sm !text-gray-600">All</label>
+                  </div>
+                </div>
+              </div>
+            </div>
 
 
             <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
               <div>
-                <Label>Total Price</Label>
+                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Total Price</Label>
                 <Input
                   type="number"
                   value={item.totalPrice}
                   readOnly
-                  className="!w-full !bg-gray-100 !text-green-700"
+                  className="!w-full !bg-indigo-50 !text-indigo-800 !font-semibold !border !border-indigo-200 !rounded-md !shadow-sm"
                 />
               </div>
+
               <div>
-                <Label>After Discount</Label>
+                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Discounted Price</Label>
                 <Input
                   type="number"
-                  value={item.totalPrice - (item.discountType.value == "percent" ? (Number(item.totalPrice * item.discount) / 100) : Number(item.discount.toFixed(2)))}
+                  value={item.discountPrice}
                   readOnly
-                  className="!w-full !bg-gray-100 !text-green-700"
+                  className="!w-full !bg-indigo-50 !text-indigo-800 !font-semibold !border !border-indigo-200 !rounded-md !shadow-sm"
                 />
               </div>
-            </div>
 
-            <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
               <div>
-                <Label>Remain</Label>
+                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Remaining</Label>
                 <Input
                   type="number"
                   value={item.remain}
                   readOnly
-                  className="!w-full !bg-gray-100 !text-green-700"
+                  className="!w-full !bg-indigo-50 !text-indigo-800 !font-semibold !border !border-indigo-200 !rounded-md !shadow-sm"
                 />
               </div>
+
               <div>
-                <Label>Current - Cost / Unit</Label>
+                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Cost / Unit</Label>
                 <Input
                   type="text"
                   readOnly
                   value={`Cost / Unit: ${calculatedUnit}`}
-                  className="!w-full !bg-gray-100 !text-green-700"
+                  className="!w-full !bg-indigo-50 !text-indigo-800 !font-semibold !border !border-indigo-200 !rounded-md !shadow-sm"
                 />
               </div>
             </div>
-
-            <div className="!flex !justify-end !mt-4">
+            <div className="!flex !justify-end !mt-6">
               <Button
                 variant="danger"
-                className="!mt-4"
-                // className="!w-full"
+                className="!px-5 !py-2 !rounded-md !text-sm !transition"
                 onClick={() => removeStockItem(item.id)}
               >
                 Remove
@@ -381,21 +428,27 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
         );
       })}
 
-      <Button onClick={addStockItem} className="!mb-6">
+      <Button
+        onClick={addStockItem}
+        variant="primary"
+        className="!mb-6 !font-medium !px-4 !py-1 !rounded-md !transition !duration-200 !border-none"
+      >
         + Add Stock Item
       </Button>
 
       {/* Expenses Section */}
-      <h3 className="!text-lg !mb-4 !text-gray-800">Expenses</h3>
+      <h3 className="!text-xl !font-semibold !mb-4 !text-indigo-500 !pb-2">
+        Expenses
+      </h3>
 
       {expenses.map((exp) => (
         <div
           key={exp.id}
-          className="!border !border-gray-300 !rounded-md !p-4 !mb-4 !bg-gray-50"
+          className="!border !border-indigo-200 !rounded-xl !p-5 !mb-6 !bg-indigo-50/20 shadow-sm transition hover:shadow-md"
         >
           <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4">
             <div>
-              <Label>Expense To</Label>
+              <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block"> Expense To</Label>
               <Select
                 value={exp.partnerId || ""}
                 onChange={(selected) =>
@@ -405,12 +458,16 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   value: s.id,
                   label: s.name,
                 }))}
-                className="!w-full"
+                placeholder="Select Partner"
+                isDisabled={!suppliers.length}
+                isLoading={!suppliers.length}
+                className="!w-full custom-partner-select !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
               />
             </div>
 
             <div>
-              <Label>Type</Label>
+              <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block"> Type
+              </Label>
               <Select
                 value={exp.expenseTypeId || ""}
                 onChange={(selected) =>
@@ -420,12 +477,14 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   value: t.id,
                   label: t.name,
                 }))}
-                className="!w-full"
+                placeholder="Select Type"
+                className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
               />
             </div>
 
             <div>
-              <Label>Amount</Label>
+              <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block"> Amount
+              </Label>
               <Input
                 type="number"
                 value={exp.totalAmount}
@@ -434,12 +493,13 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                     totalAmount: Number(e.target.value),
                   })
                 }
-                className="!w-full"
+                className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-emerald-500"
               />
             </div>
 
             <div>
-              <Label>Paid Amount</Label>
+              <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block"> Paid Amount
+              </Label>
               <Input
                 type="number"
                 value={exp.paidAmount}
@@ -448,122 +508,147 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                     paidAmount: Number(e.target.value),
                   })
                 }
-                className="!w-full"
+                className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
               />
             </div>
 
-            <div className="sm:col-span-2">
-              <Label>Note</Label>
+            <div className="!col-span-1 sm:!col-span-2">
+              <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block"> Note</Label>
               <TextArea
                 rows={2}
                 value={exp.note}
-                onChange={(e) =>
-                  updateExpenseItem(exp.id, { note: e.target.value })
-                }
-                className="!w-full"
+                onChange={(e) => updateExpenseItem(exp.id, { note: e.target.value })}
+                placeholder="Optional note"
+                className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !resize-none !transition focus:!ring-2 focus:!ring-yellow-400"
               />
             </div>
           </div>
 
-          <div className="!flex !justify-end !mt-4">
-            <Button variant="danger" onClick={() => removeExpenseItem(exp.id)}>
+          <div className="!flex !justify-end !mt-6">
+            <Button
+              variant="danger"
+              className="!px-5 !py-2 !rounded-md !text-sm !transition"
+              onClick={() => removeExpenseItem(exp.id)}
+            >
               Remove
             </Button>
           </div>
+
         </div>
       ))}
 
-      <Button onClick={addExpenseItem} className="!mb-6">
+      <Button
+        onClick={addExpenseItem}
+        variant="primary"
+        className="!mb-6 !font-medium !px-4 !py-1 !rounded-md !transition !duration-200 !border-none"
+      >
         + Add Expense
       </Button>
 
       {/* Global Discount */}
       <div className="!border !border-gray-300 !rounded-md !p-4 !mb-6 !bg-gray-50 !w-full md:!w-1/2 md:!ml-auto">
-        <Label>Global Discount</Label>
+        <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Global Discount</Label>
         <div className="!grid !grid-cols-2 !gap-4 !mt-2">
           <Input
             type="number"
             value={globalDiscount}
             onChange={(e) => setGlobalDiscount(Number(e.target.value))}
-            className="!w-full"
+            className="!w-full !border !border-gray-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
             placeholder="Discount Value"
           />
           <Select
             value={globalDiscountType}
-            onChange={(selected) => setGlobalDiscountType(selected || "amount")}
+            onChange={(selected) =>
+              setGlobalDiscountType(
+                selected || { value: "amount", label: "$ - Amount" }
+              )
+            }
             options={[
               { value: "percent", label: "% - Percent" },
               { value: "amount", label: "$ - Amount" },
             ]}
-            className="!w-full"
+            className="!w-full !border !border-gray-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
           />
         </div>
       </div>
 
       {/* Totals Summary */}
       <div className="!w-full md:!w-1/2 md:!ml-auto !grid !grid-rows-7 !grid-cols-3 !gap-y-4 !border !border-gray-300 !rounded-md !p-4 !my-4 !bg-gray-50">
-        <div className="!text-left">Total Stock</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Stock</div>
         <div className="!text-center">:</div>
-        <div className="!text-right !text-red-600">
+        <div className="!text-right !text-red-600 !font-semibold">
           {totalStockAmount.toFixed(2)}
         </div>
 
-        <div className="!text-left">Total Item Discount</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Item Discount</div>
         <div className="!text-center">:</div>
-        <div className="!text-right !text-yellow-600">
+        <div className="!text-right !text-yellow-600 !font-semibold">
           {totalItemDiscount.toFixed(2)}
         </div>
 
-        <div className="!text-left">Global Discount</div>
+        <div className="!text-left !font-medium !text-gray-700">Global Discount</div>
         <div className="!text-center">:</div>
-        <div className="!text-right !text-purple-600">
+        <div className="!text-right !text-purple-600 !font-semibold">
           {globalDiscountType.value === "percent"
-            ? ((totalStockAmount - totalItemDiscount) * globalDiscount) / 100
-            : globalDiscount.toFixed(2)}
+            ? (
+              ((totalStockAmount - totalItemDiscount) * globalDiscount) /
+              100
+            ).toFixed(2)
+            : Number(globalDiscount).toFixed(2)}
         </div>
 
-        <div className="!text-left">Total Expense</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Expense</div>
         <div className="!text-center">:</div>
-        <div className="!text-right !text-indigo-600">
+        <div className="!text-right !text-indigo-600 !font-semibold">
           {totalExpenseAmount.toFixed(2)}
         </div>
 
-        <div className="!text-left">Grand Total</div>
+        <div className="!text-left !font-medium !text-gray-700">Grand Total</div>
         <div className="!text-center">:</div>
-        <div className="!text-right !text-green-600">
+        <div className="!text-right !text-green-600 !font-semibold">
           {grandTotal.toFixed(2)}
         </div>
 
-        <div className="!text-left">Total Paid</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Paid</div>
         <div className="!text-center">:</div>
-        <div className="!text-right !text-blue-600">
+        <div className="!text-right !text-teal-600 !font-semibold">
           {totalPaidAmount.toFixed(2)}
         </div>
 
-        <div className="!text-left">Total Remain</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Remain</div>
         <div className="!text-center">:</div>
-        <div className="!text-right !text-orange-600">
+        <div className="!text-right !text-orange-600 !font-semibold">
           {totalRemainAmount.toFixed(2)}
         </div>
       </div>
 
       {/* Action Buttons */}
-      <Box
-        display="flex"
-        justifyContent="flex-end"
-        gap="lg"
-        className="!flex !justify-end !space-x-4"
-      >
-        <Button variant="danger" onClick={handleCancel}>
+      <Box className="!flex !justify-end !gap-4 !mt-6">
+        <Button
+          variant="danger"
+          onClick={handleCancel}
+          className="!px-4 !py-2 !rounded-md !text-sm !font-medium !transition"
+        >
           Cancel
         </Button>
-        <Button variant="primary" onClick={handleOrder}>
+
+        <Button
+          variant="primary"
+          onClick={handleOrder}
+          className="!px-4 !py-2 !rounded-md !text-sm !font-medium !transition"
+        >
           Order
         </Button>
-        <Button variant="success" onClick={handleFullPurchase}>
+
+        <Button
+          variant="success"
+          onClick={handleFullPurchase}
+          className="!px-4 !py-2 !rounded-md !text-sm !font-medium !transition"
+        >
           Full Purchase
         </Button>
       </Box>
+
     </div>
   );
 };

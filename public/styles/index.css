@@ -14,3 +14,10 @@
 .hZzKCo {
   display: none !important;
 }
+
+/* PURCHASE ORDER */
+.custom-partner-select > div {
+  background-color: #f0fdf4 !important; /* soft greenish */
+  border-color: #86efac !important; /* light green border */
+  color: #065f46 !important;         /* deep green text */
+}
