@@ -5,6 +5,10 @@
   display: none !important;
 }
 
+.eLdwWJ {
+  display: none !important;
+}
+
 /* LEFT SIDE NAV NAV HEADER `NAVIGATION` TEXT REMOVED */
 .sZaIG {
   display: none !important;
@@ -23,5 +27,5 @@
 .custom-partner-select > div {
   background-color: #f0fdf4 !important; /* soft greenish */
   border-color: #86efac !important; /* light green border */
-  color: #065f46 !important;         /* deep green text */
+  color: #065f46 !important; /* deep green text */
 }
