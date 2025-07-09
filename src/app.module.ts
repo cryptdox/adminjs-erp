@@ -47,16 +47,16 @@ AdminJS.registerAdapter({ Database, Resource });
       useFactory: async () => {
         return {
           adminJsOptions: options,
-          auth: {
-            provider,
-            cookiePassword: process.env.COOKIE_SECRET,
-            cookieName: 'adminjs',
-          },
-          sessionOptions: {
-            resave: true,
-            saveUninitialized: true,
-            secret: process.env.COOKIE_SECRET,
-          },
+          // auth: {
+          //   provider,
+          //   cookiePassword: process.env.COOKIE_SECRET,
+          //   cookieName: 'adminjs',
+          // },
+          // sessionOptions: {
+          //   resave: true,
+          //   saveUninitialized: true,
+          //   secret: process.env.COOKIE_SECRET,
+          // },
         };
       },
     }),

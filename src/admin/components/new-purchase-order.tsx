@@ -24,10 +24,17 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     removeStockItem,
     updateStockItem,
     updateDiscountType,
+    addStockItemExpense,
+    removeStockItemExpense,
+    updateStockItemExpense,
     expenses,
     addExpenseItem,
     removeExpenseItem,
     updateExpenseItem,
+    globalDiscount,
+    setGlobalDiscount,
+    globalDiscountType,
+    setGlobalDiscountType,
     fetchSuppliers,
     fetchProducts,
     fetchVariants,
@@ -35,32 +42,26 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     fetchExpenseTypes,
     calculateExpensePerUnit,
     totalStockAmount,
-    totalItemDiscount,
-    globalDiscount,
-    setGlobalDiscount,
-    globalDiscountType,
-    setGlobalDiscountType,
+    globalExpenseAmount,
+    totalStockItemExpenses,
     totalExpenseAmount,
+    totalItemDiscount,
+    globalDiscountAmount,
     grandTotal,
     totalPaidAmount,
     totalRemainAmount,
     handleCancel,
     handleOrder,
     handleFullPurchase,
+    getTotalGlobalExpensePaid,
+    getTotalStockItemExpensePaid
   } = useNewPurchaseOrder(props);
 
-  const [suppliers, setSuppliers] = useState<{
-    id: string;
-    name: string;
-  }[]>([]);
+  const [suppliers, setSuppliers] = useState<{ id: string; name: string; }[]>([]);
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
   const [variantMap, setVariantMap] = useState<Record<string, Variant[]>>({});
-  const [warehouses, setWarehouses] = useState<{ id: string; name: string }[]>(
-    []
-  );
-  const [expenseTypes, setExpenseTypes] = useState<{ id: string; name: string }[]>(
-    []
-  );
+  const [warehouses, setWarehouses] = useState<{ id: string; name: string }[]>([]);
+  const [expenseTypes, setExpenseTypes] = useState<{ id: string; name: string }[]>([]);
   const [variantLoader, setVariantLoader] = useState<boolean>(false);
 
   useEffect(() => {
@@ -84,7 +85,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     const loadVariants = async () => {
       setVariantLoader(true);
       const productIds = [
-        ...new Set(stockItems.map((item) => item.productId).filter(Boolean)),
+        ...new Set(stockItems.map((item) => item.product.value).filter(Boolean)),
       ];
       const newMap: Record<string, Variant[]> = {};
       for (const productId of productIds) {
@@ -95,7 +96,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
       setVariantLoader(false);
     };
     loadVariants();
-  }, [stockItems.map((i) => i.productId).join(",")]);
+  }, [stockItems.map((i) => i.product?.value).join(",")]);
 
   return (
     <div className="!w-full !p-6 !bg-white !rounded-md !shadow-md">
@@ -149,7 +150,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
       </h3>
 
       {stockItems.map((item) => {
-        const variants = item.productId ? variantMap[item.productId] || [] : [];
+        const variants = item.product?.value ? variantMap[item.product?.value] : [];
         const calculatedUnit = calculateExpensePerUnit(item).toFixed(2);
         return (
           <div
@@ -161,11 +162,11 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               <div>
                 <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Product</Label>
                 <Select
-                  value={item.productId || ""}
+                  value={item.product || undefined}
                   onChange={(selected) =>
                     updateStockItem(item.id, {
-                      productId: selected || "",
-                      variantId: "",
+                      product: selected || undefined,
+                      variant: undefined,
                     })
                   }
                   options={products.map((p) => ({
@@ -180,15 +181,15 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               <div>
                 <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Variant</Label>
                 <Select
-                  value={item.variantId || ""}
+                  value={item.variant || undefined}
                   onChange={(selected) =>
-                    updateStockItem(item.id, { variantId: selected || "" })
+                    updateStockItem(item.id, { variant: selected || undefined })
                   }
                   options={variants.map((v) => ({
                     value: v.id,
                     label: v.name,
                   }))}
-                  isDisabled={!item.productId}
+                  isDisabled={!item.product}
                   isLoading={variantLoader}
                   placeholder="Select Variant"
                   className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
@@ -198,9 +199,9 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               <div>
                 <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Warehouse</Label>
                 <Select
-                  value={item.warehouseId || ""}
+                  value={item.warehouse || undefined}
                   onChange={(selected) =>
-                    updateStockItem(item.id, { warehouseId: selected || "" })
+                    updateStockItem(item.id, { warehouse: selected || undefined })
                   }
                   options={warehouses.map((w) => ({
                     value: w.id,
@@ -291,13 +292,10 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               <div>
                 <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Discount Type</Label>
                 <Select
-                  value={item.discountType || ""}
+                  value={item.discountType || { value: "amount", label: "$ - Amount" }}
                   onChange={(selected) =>
                     updateDiscountType(item.id, {
-                      discountType: selected || {
-                        value: "amount",
-                        label: "$ - Amount",
-                      },
+                      discountType: selected || { value: "amount", label: "$ - Amount" }
                     })
                   }
                   options={[
@@ -305,7 +303,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                     { value: "amount", label: "$ - Amount" },
                   ]}
                   placeholder="Select Discount Type"
-                  className="!w-full"
+                  className="!w-full !bg-green-100"
                 />
               </div>
             </div>
@@ -318,20 +316,20 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                     value={item.paid}
                     onChange={(e) => {
                       const inputValue = Number(e.target.value);
-                      const cappedValue = Math.min(inputValue, item.discountPrice);
+                      const cappedValue = Math.min(inputValue, item.afterDiscountPrice);
                       updateStockItem(item.id, { paid: cappedValue });
                     }}
-                    max={item.discountPrice}
+                    max={item.afterDiscountPrice}
                     className="!w-full !border border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
                   />
                   <div className="!flex !items-center !gap-1">
                     <input
                       type="checkbox"
                       id={`auto-paid-${item.id}`}
-                      checked={item.paid === item.discountPrice}
+                      checked={item.paid === item.afterDiscountPrice}
                       onChange={(e) =>
                         updateStockItem(item.id, {
-                          paid: e.target.checked ? item.discountPrice : 0,
+                          paid: e.target.checked ? item.afterDiscountPrice : 0,
                         })
                       }
                       className="!w-4 !h-4 !accent-indigo-600"
@@ -342,7 +340,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               </div>
 
               <div>
-                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Quantity</Label>
+                <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Received Quantity</Label>
                 <div className="flex items-center gap-3">
                   <Input
                     type="number"
@@ -373,6 +371,103 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               </div>
             </div>
 
+            {/* Stock Item Expenses */}
+            <div className="!mt-6">
+              <Label className="!text-sm !font-bold !text-indigo-600 !mb-2 !block">Item Expenses</Label>
+
+              {item?.expenses.map((exp) => (
+                <div
+                  key={exp.id}
+                  className="!grid !grid-cols-1 md:!grid-cols-2 !gap-4 !mb-4 !p-4 !rounded-md !bg-white !border !border-gray-200"
+                >
+                  <div className="!w-full">
+                    <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Expense Type</Label>
+                    <Select
+                      value={exp.expenseType || undefined}
+                      onChange={(selected) =>
+                        updateStockItemExpense(item.id, exp.id, { expenseType: selected || undefined })
+                      }
+                      options={expenseTypes.map((et) => ({ value: et.id, label: et.name }))}
+                      placeholder="Expense Type"
+                      className="!w-full"
+                    />
+                  </div>
+
+                  <div className="!w-full">
+                    <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Expense To</Label>
+                    <Select
+                      value={exp.partner || undefined}
+                      onChange={(selected) =>
+                        updateStockItemExpense(item.id, exp.id, { partner: selected || undefined })
+                      }
+                      options={suppliers.map((p) => ({ value: p.id, label: p.name }))}
+                      placeholder="Partner"
+                      className="!w-full"
+                    />
+                  </div>
+
+                  <div className="!w-full">
+                    <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Amount</Label>
+                    <Input
+                      type="number"
+                      placeholder="Amount"
+                      value={exp.totalAmount}
+                      onChange={(e) =>
+                        updateStockItemExpense(item.id, exp.id, { totalAmount: Number(e.target.value) })
+                      }
+                      className="!w-full"
+                    />
+                  </div>
+
+                  <div className="!w-full">
+                    <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Paid Amount</Label>
+                    <Input
+                      type="number"
+                      placeholder="Paid"
+                      value={exp.paidAmount}
+                      onChange={(e) =>
+                        updateStockItemExpense(item.id, exp.id, { paidAmount: Number(e.target.value) })
+                      }
+                      className="!w-full"
+                    />
+                  </div>
+
+                  <div className="!w-full md:!col-span-2">
+                    <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Note</Label>
+                    <Input
+                      type="text"
+                      placeholder="Note (optional)"
+                      value={exp.note || ''}
+                      onChange={(e) =>
+                        updateStockItemExpense(item.id, exp.id, { note: e.target.value })
+                      }
+                      className="!w-full"
+                    />
+                  </div>
+
+                  <div className="!w-full md:!col-span-2 !flex !justify-end">
+                    <Button
+                      variant="danger"
+                      className="!text-sm !px-4 !py-1 !rounded-md !mt-2"
+                      onClick={() => removeStockItemExpense(item.id, exp.id)}
+                    >
+                      Remove Stock Expense
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              <div className="!mt-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => addStockItemExpense(item.id)}
+                  className="!text-sm !rounded-md !border-none"
+                >
+                  + Add Expense
+                </Button>
+              </div>
+            </div>
 
             <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
               <div>
@@ -386,17 +481,57 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               </div>
 
               <div>
-                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Discounted Price</Label>
+                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Total Discount</Label>
                 <Input
                   type="number"
-                  value={item.discountPrice}
+                  value={item.totalDiscount}
                   readOnly
                   className="!w-full !bg-indigo-50 !text-indigo-800 !font-semibold !border !border-indigo-200 !rounded-md !shadow-sm"
                 />
               </div>
 
               <div>
-                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Remaining</Label>
+                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">After Discount (Price)</Label>
+                <Input
+                  type="number"
+                  value={item.afterDiscountPrice}
+                  readOnly
+                  className="!w-full !bg-indigo-50 !text-indigo-800 !font-semibold !border !border-indigo-200 !rounded-md !shadow-sm"
+                />
+              </div>
+
+              <div>
+                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Total Expense</Label>
+                <Input
+                  type="number"
+                  value={item.totalExpense}
+                  readOnly
+                  className="!w-full !bg-indigo-50 !text-indigo-800 !font-semibold !border !border-indigo-200 !rounded-md !shadow-sm"
+                />
+              </div>
+
+              <div>
+                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Total Cost</Label>
+                <Input
+                  type="number"
+                  value={item.totalCost}
+                  readOnly
+                  className="!w-full !bg-indigo-50 !text-indigo-800 !font-semibold !border !border-indigo-200 !rounded-md !shadow-sm"
+                />
+              </div>
+
+              <div>
+                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Total Cost After Discount</Label>
+                <Input
+                  type="number"
+                  value={item.totalCostAfterDiscount}
+                  readOnly
+                  className="!w-full !bg-indigo-50 !text-indigo-800 !font-semibold !border !border-indigo-200 !rounded-md !shadow-sm"
+                />
+              </div>
+
+              <div>
+                <Label className="!text-sm !font-semibold !text-gray-700 !mb-1 !block">Remain Price After Pay</Label>
                 <Input
                   type="number"
                   value={item.remain}
@@ -415,13 +550,14 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                 />
               </div>
             </div>
+
             <div className="!flex !justify-end !mt-6">
               <Button
                 variant="danger"
-                className="!px-5 !py-2 !rounded-md !text-sm !transition"
+                className="!px-4 !py-1 !rounded-md !text-sm !transition"
                 onClick={() => removeStockItem(item.id)}
               >
-                Remove
+                Remove Stock Item
               </Button>
             </div>
           </div>
@@ -450,9 +586,9 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
             <div>
               <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block"> Expense To</Label>
               <Select
-                value={exp.partnerId || ""}
+                value={exp.partner || undefined}
                 onChange={(selected) =>
-                  updateExpenseItem(exp.id, { partnerId: selected || "" })
+                  updateExpenseItem(exp.id, { partner: selected || undefined })
                 }
                 options={suppliers.map((s) => ({
                   value: s.id,
@@ -469,9 +605,9 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block"> Type
               </Label>
               <Select
-                value={exp.expenseTypeId || ""}
+                value={exp.expenseType || undefined}
                 onChange={(selected) =>
-                  updateExpenseItem(exp.id, { expenseTypeId: selected || "" })
+                  updateExpenseItem(exp.id, { expenseType: selected || undefined })
                 }
                 options={expenseTypes.map((t) => ({
                   value: t.id,
@@ -527,10 +663,10 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
           <div className="!flex !justify-end !mt-6">
             <Button
               variant="danger"
-              className="!px-5 !py-2 !rounded-md !text-sm !transition"
+              className="!px-4 !py-1 !rounded-md !text-sm !transition"
               onClick={() => removeExpenseItem(exp.id)}
             >
-              Remove
+              Remove Global Expense
             </Button>
           </div>
 
@@ -574,7 +710,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
 
       {/* Totals Summary */}
       <div className="!w-full md:!w-1/2 md:!ml-auto !grid !grid-rows-7 !grid-cols-3 !gap-y-4 !border !border-gray-300 !rounded-md !p-4 !my-4 !bg-gray-50">
-        <div className="!text-left !font-medium !text-gray-700">Total Stock</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Stock Item Price</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-red-600 !font-semibold">
           {totalStockAmount.toFixed(2)}
@@ -589,17 +725,24 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
         <div className="!text-left !font-medium !text-gray-700">Global Discount</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-purple-600 !font-semibold">
-          {globalDiscountType.value === "percent"
-            ? (
-              ((totalStockAmount - totalItemDiscount) * globalDiscount) /
-              100
-            ).toFixed(2)
-            : Number(globalDiscount).toFixed(2)}
+          {Number(globalDiscountAmount).toFixed(2) || 0}
+        </div>
+
+        <div className="!text-left !font-medium !text-gray-700">Total Stock Expense</div>
+        <div className="!text-center">:</div>
+        <div className="!text-right !text-blue-800 !font-semibold">
+          {totalStockItemExpenses.toFixed(2)}
+        </div>
+
+        <div className="!text-left !font-medium !text-gray-700">Total Global Expense</div>
+        <div className="!text-center">:</div>
+        <div className="!text-right !text-indigo-600 !font-semibold">
+          {globalExpenseAmount.toFixed(2)}
         </div>
 
         <div className="!text-left !font-medium !text-gray-700">Total Expense</div>
         <div className="!text-center">:</div>
-        <div className="!text-right !text-indigo-600 !font-semibold">
+        <div className="!text-right !text-red-800 !font-semibold">
           {totalExpenseAmount.toFixed(2)}
         </div>
 
@@ -609,13 +752,31 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
           {grandTotal.toFixed(2)}
         </div>
 
-        <div className="!text-left !font-medium !text-gray-700">Total Paid</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Paid For Item</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-teal-600 !font-semibold">
           {totalPaidAmount.toFixed(2)}
         </div>
 
-        <div className="!text-left !font-medium !text-gray-700">Total Remain</div>
+        <div className="!text-left !font-medium !text-gray-700">Expense Paid For Stock Item</div>
+        <div className="!text-center">:</div>
+        <div className="!text-right !text-teal-600 !font-semibold">
+          {getTotalStockItemExpensePaid.toFixed(2)}
+        </div>
+
+        <div className="!text-left !font-medium !text-gray-700">Global Expense Paid</div>
+        <div className="!text-center">:</div>
+        <div className="!text-right !text-teal-600 !font-semibold">
+          {getTotalGlobalExpensePaid.toFixed(2)}
+        </div>
+
+        <div className="!text-left !font-medium !text-gray-700">Total Remain For Stock Amount</div>
+        <div className="!text-center">:</div>
+        <div className="!text-right !text-orange-600 !font-semibold">
+          {totalRemainAmount.toFixed(2)}
+        </div>
+
+        <div className="!text-left !font-medium !text-gray-700">Total Remain </div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-orange-600 !font-semibold">
           {totalRemainAmount.toFixed(2)}

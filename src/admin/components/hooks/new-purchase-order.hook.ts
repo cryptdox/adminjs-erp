@@ -1,28 +1,38 @@
 import { BasePropertyProps } from 'adminjs';
 import { useState, useEffect } from 'react';
 
+export interface SelectedValue {
+  value: string;
+  label: string;
+}
+
 export interface StockItemInput {
   id: string;
-  productId: string;
-  variantId: string;
-  warehouseId: string;
+  product: SelectedValue;
+  variant: SelectedValue;
+  warehouse: SelectedValue;
   manufactureDate: string;
   expiryDate: string;
   unitPrice: number;
   quantity: number;
-  totalPrice: number;
   paid: number;
   receivedQuantity: number;
   discount: number;
+  totalPrice: number;
+  totalDiscount: number;
+  afterDiscountPrice: number;
+  totalExpense: number;
+  totalCost: number;
+  totalCostAfterDiscount: number;
   remain: number;
-  discountType: { value: 'amount'; label: '$ - Amount' } | { value: 'percent'; label: '% - Percent' };
-  discountPrice: number;
+  discountType: SelectedValue;
+  expenses?: ExpenseInput[]; // 🔥 Add this to support per-item expenses
 }
 
 export interface ExpenseInput {
   id: string;
-  partnerId: string;
-  expenseTypeId: string;
+  partner: SelectedValue;
+  expenseType: SelectedValue;
   totalAmount: number;
   paidAmount: number;
   note?: string;
@@ -63,9 +73,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   const [expenses, setExpenses] = useState<ExpenseInput[]>([]);
 
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
-  const [globalDiscountType, setGlobalDiscountType] = useState<
-    { value: 'amount'; label: '$ - Amount' } | { value: 'percent'; label: '% - Percent' }
-  >({ value: 'amount', label: '$ - Amount' });
+  const [globalDiscountType, setGlobalDiscountType] = useState<SelectedValue>({ value: 'amount', label: '$ - Amount' });
 
   // Initialize order number once
   useEffect(() => {
@@ -132,10 +140,18 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     }));
   };
 
-  const fetchExpenseTypes = (): ExpenseType[] => [
-    { id: 'et1', name: 'Transport' },
-    { id: 'et2', name: 'Custom Duty' },
-  ];
+  const fetchExpenseTypes = async (): Promise<ExpenseType[]> => {
+    const res = await fetch('/admin/api/resources/ExpenseType/actions/list', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: 1, perPage: 100 }),
+    });
+    const result = await res.json();
+    return result.records.map((r: any) => ({
+      id: r.params.id,
+      name: r.params.name,
+    }));
+  };
 
   // Add a new stock item with default discount type = 'amount'
   const addStockItem = () => {
@@ -143,20 +159,25 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
       ...prev,
       {
         id: `stockitem-${Date.now()}`,
-        productId: '',
-        variantId: '',
-        warehouseId: '',
+        product: undefined,
+        variant: undefined,
+        warehouse: undefined,
         manufactureDate: '',
         expiryDate: '',
         unitPrice: 0,
         quantity: 0,
         receivedQuantity: 0,
-        totalPrice: 0,
         paid: 0,
         discount: 0,
-        remain: 0,
         discountType: { value: 'amount', label: '$ - Amount' },
-        discountPrice: 0,
+        expenses: [],
+        totalPrice: 0,
+        totalDiscount: 0,
+        afterDiscountPrice: 0,
+        totalExpense: 0,
+        totalCost: 0,
+        totalCostAfterDiscount: 0,
+        remain: 0,
       },
     ]);
   };
@@ -165,45 +186,53 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   const removeStockItem = (id: string) => {
     setStockItems((prev) => prev.filter((item) => item.id !== id));
   };
-
-  // Update stock item and calculate totals & remain
   const updateStockItem = (id: string, data: Partial<StockItemInput>) => {
     setStockItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
 
-        // If discountType changed then reset the discount amount
-        if (data?.discountType?.value && data?.discountType?.value !== item.discountType.value) data.discount = 0;
+        // Reset discount if discountType changed
+        if (data?.discountType?.value && data?.discountType?.value !== item.discountType.value) {
+          data.discount = 0;
+        }
 
         const updated = { ...item, ...data };
 
-        // Calculate gross = unitPrice * quantity
         const gross = updated.unitPrice * updated.quantity;
 
-        // Calculate discount properly based on discountType
-        const discount = updated.discountType.value === 'percent' ? (gross * updated.discount) / 100 : updated.discount;
+        // Calculate discount
+        const discountAmount =
+          updated.discountType.value === 'percent' ? (gross * updated.discount) / 100 : updated.discount;
 
-        // totalPrice = gross before discount (kept as gross here for clarity)
-        // or you can set totalPrice = gross - discount, depending on your logic
         const totalPrice = gross;
+        const discountPrice = totalPrice - discountAmount;
 
-        // discountPrice  = totalPrice - discount
-        const discountPrice = totalPrice - discount;
+        // Ensure paid is not more than discountPrice
+        let paid = updated.paid;
+        if (paid > discountPrice) paid = discountPrice;
 
-        // Keep max paid amount in discount price
-        let paid = 0
-        if (updated.paid > discountPrice) paid == discountPrice;
-        else paid = updated.paid
+        const remain = discountPrice - paid;
 
-        // remain = totalPrice - discount - paid
-        const remain = totalPrice - discount - paid;
+        // Per-item expenses total
+        const totalExpense = updated.expenses?.reduce((sum, exp) => sum + (exp.totalAmount || 0), 0) ?? 0;
+
+        const totalDiscount = discountAmount;
+        const afterDiscountPrice = discountPrice;
+
+        const totalCost = gross + totalExpense;
+        const totalCostAfterDiscount = discountPrice + totalExpense;
 
         return {
           ...updated,
           totalPrice,
-          remain,
+          totalDiscount,
+          afterDiscountPrice,
+          totalExpense,
+          totalCost,
+          totalCostAfterDiscount,
           discountPrice,
-          paid
+          remain,
+          paid,
         };
       })
     );
@@ -217,14 +246,114 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     updateStockItem(id, data);
   };
 
+  // NEW: stockItem expense handlers
+  const addStockItemExpense = (stockId: string) => {
+    setStockItems((prev) =>
+      prev.map((item) =>
+        item.id === stockId
+          ? {
+              ...item,
+              expenses: [
+                ...item.expenses,
+                {
+                  id: `stockexpense-${Date.now()}`,
+                  partner: undefined,
+                  expenseType: undefined,
+                  totalAmount: 0,
+                  paidAmount: 0,
+                  note: '',
+                },
+              ],
+            }
+          : item
+      )
+    );
+  };
+
+  const addExpenseToStockItem = (stockItemId: string) => {
+    setStockItems((prev) =>
+      prev.map((item) =>
+        item.id === stockItemId
+          ? {
+              ...item,
+              expenses: [
+                ...(item.expenses || []),
+                {
+                  id: `stock-expense-${Date.now()}`,
+                  partner: undefined,
+                  expenseType: undefined,
+                  totalAmount: 0,
+                  paidAmount: 0,
+                  note: '',
+                },
+              ],
+            }
+          : item
+      )
+    );
+  };
+
+  const updateStockItemExpense = (stockItemId: string, expenseId: string, data: Partial<ExpenseInput>) => {
+    setStockItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== stockItemId) return item;
+
+        // Update expenses
+        const updatedExpenses = (item.expenses || []).map((exp) => (exp.id === expenseId ? { ...exp, ...data } : exp));
+
+        // Recalculate expense total
+        const totalExpense = updatedExpenses.reduce((sum, exp) => sum + (exp.totalAmount || 0), 0);
+
+        // Recompute financials
+        const gross = item.unitPrice * item.quantity;
+
+        const discountAmount = item.discountType.value === 'percent' ? (gross * item.discount) / 100 : item.discount;
+
+        const discountPrice = gross - discountAmount;
+
+        const paid = Math.min(item.paid, discountPrice);
+        const remain = discountPrice - paid;
+
+        const totalCost = gross + totalExpense;
+        const totalCostAfterDiscount = discountPrice + totalExpense;
+
+        return {
+          ...item,
+          expenses: updatedExpenses,
+          totalExpense,
+          totalCost,
+          totalCostAfterDiscount,
+          totalDiscount: discountAmount,
+          afterDiscountPrice: discountPrice,
+          discountPrice,
+          remain,
+          paid,
+        };
+      })
+    );
+  };
+
+  const removeStockItemExpense = (stockItemId: string, expenseId: string) => {
+    setStockItems((prev) =>
+      prev.map((item) =>
+        item.id === stockItemId
+          ? {
+              ...item,
+              expenses: (item.expenses || []).filter((exp) => exp.id !== expenseId),
+            }
+          : item
+      )
+    );
+  };
+
   // Add new expense
   const addExpenseItem = () => {
     setExpenses((prev) => [
       ...prev,
       {
         id: `expenseitem-${Date.now()}`,
-        partnerId: '',
-        expenseTypeId: '',
+        partner: undefined,
+        expenseType: undefined,
         totalAmount: 0,
         paidAmount: 0,
         note: '',
@@ -244,9 +373,29 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
 
   // Calculate expense per unit for a stock item (unitPrice + expense per quantity)
   const calculateExpensePerUnit = (item: StockItemInput): number => {
-    const totalExpense = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
-    const totalQty = stockItems.reduce((sum, i) => sum + i.quantity, 0);
-    return item.unitPrice + (totalQty > 0 ? totalExpense / totalQty : 0);
+    // const globalDiscountAmount = globalDiscountType.value === 'percent' ? (totalStockAmount * globalDiscount) / 100 : item.discount;
+    const globalExpense = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
+    const itemGross = item.unitPrice * item.quantity;
+    const globalExpensePerUnit = ((itemGross / totalStockAmount) * globalExpense) / (item.quantity || 1);
+    const globalDiscountPerUnit = ((itemGross / totalStockAmount) * globalDiscountAmount) / (item.quantity || 1);
+
+    const itemExpenseTotal = (item.expenses || []).reduce((sum, e) => sum + e.totalAmount, 0);
+    const itemExpensePerUnit = itemExpenseTotal / (item.quantity || 1);
+
+    const discountAmount =
+      item.discountType.value === 'percent' ? (item.unitPrice * item.quantity * item.discount) / 100 : item.discount;
+
+    const discountPerUnit = discountAmount / (item.quantity || 1);
+
+    console.log(item.unitPrice, globalExpensePerUnit, itemExpensePerUnit, discountPerUnit, globalDiscountPerUnit);
+
+    return (
+      (item.unitPrice || 0) +
+      (globalExpensePerUnit || 0) +
+      (itemExpensePerUnit || 0) -
+      (discountPerUnit || 0) -
+      (globalDiscountPerUnit || 0)
+    );
   };
 
   // ========== Calculations ==========
@@ -262,7 +411,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   }, 0);
 
   // Sum of totalAmount of all expenses
-  const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
+  const globalExpenseAmount = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
 
   // Sum of paid amounts on stock items
   const totalStockPaid = stockItems.reduce((sum, i) => sum + i.paid, 0);
@@ -279,11 +428,29 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
       ? ((totalStockAmount - totalItemDiscount) * globalDiscount) / 100
       : globalDiscount;
 
-  // Grand total = stock total - item discounts - global discount + expenses
-  const grandTotal = totalStockAmount - totalItemDiscount - globalDiscountAmount + totalExpenseAmount;
+  // // Grand total = stock total - item discounts - global discount + expenses
+  // const grandTotal = totalStockAmount - totalItemDiscount - globalDiscountAmount + globalExpenseAmount;
+  const totalStockItemExpenses = stockItems.reduce(
+    (sum, i) => sum + (i.expenses?.reduce((s, e) => s + e.totalAmount, 0) || 0),
+    0
+  );
+
+  const totalExpenseAmount = globalExpenseAmount + totalStockItemExpenses;
+
+  const grandTotal =
+    totalStockAmount - totalItemDiscount - globalDiscountAmount + globalExpenseAmount + totalStockItemExpenses;
 
   // Total remain amount = grand total - total paid amount
   const totalRemainAmount = grandTotal - totalPaidAmount;
+
+  const getTotalGlobalExpensePaid = expenses.reduce((sum, expense) => sum + (expense.paidAmount || 0), 0);
+
+  const getTotalStockItemExpensePaid : number = 
+    stockItems.reduce((totalPaid, item) => {
+      const itemExpensePaid = (item.expenses || []).reduce((sum, exp) => sum + (exp.paidAmount || 0), 0);
+      return totalPaid + itemExpensePaid;
+    }, 0);
+  
 
   // Dummy handlers for UI
   const handleCancel = () => {
@@ -320,6 +487,9 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     removeStockItem,
     updateStockItem,
     updateDiscountType,
+    addStockItemExpense,
+    removeStockItemExpense,
+    updateStockItemExpense,
     expenses,
     addExpenseItem,
     removeExpenseItem,
@@ -335,6 +505,8 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     fetchExpenseTypes,
     calculateExpensePerUnit,
     totalStockAmount,
+    globalExpenseAmount,
+    totalStockItemExpenses,
     totalExpenseAmount,
     totalItemDiscount,
     globalDiscountAmount,
@@ -344,5 +516,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     handleCancel,
     handleOrder,
     handleFullPurchase,
+    getTotalGlobalExpensePaid,
+    getTotalStockItemExpensePaid
   };
 };
