@@ -181,11 +181,11 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
               <div>
                 <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Variant</Label>
                 <Select
-                  value={item.variant || undefined}
+                  value={item?.variant || undefined}
                   onChange={(selected) =>
                     updateStockItem(item.id, { variant: selected || undefined })
                   }
-                  options={variants.map((v) => ({
+                  options={variants?.map((v) => ({
                     value: v.id,
                     label: v.name,
                   }))}
