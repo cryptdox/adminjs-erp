@@ -54,7 +54,8 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     handleOrder,
     handleFullPurchase,
     getTotalGlobalExpensePaid,
-    getTotalStockItemExpensePaid
+    getTotalStockItemExpensePaid,
+    totalStockPaid
   } = useNewPurchaseOrder(props);
 
   const [suppliers, setSuppliers] = useState<{ id: string; name: string; }[]>([]);
@@ -709,14 +710,14 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
       </div>
 
       {/* Totals Summary */}
-      <div className="!w-full md:!w-1/2 md:!ml-auto !grid !grid-rows-7 !grid-cols-3 !gap-y-4 !border !border-gray-300 !rounded-md !p-4 !my-4 !bg-gray-50">
+      <div className="!w-full lg:!w-3/4 md:!ml-auto !grid !grid-rows-7 !grid-cols-3 !gap-y-4 !border !border-gray-300 !rounded-md !p-4 !my-4 !bg-gray-50">
         <div className="!text-left !font-medium !text-gray-700">Total Stock Item Price</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-red-600 !font-semibold">
           {totalStockAmount.toFixed(2)}
         </div>
 
-        <div className="!text-left !font-medium !text-gray-700">Total Item Discount</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Stock Item Discount</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-yellow-600 !font-semibold">
           {totalItemDiscount.toFixed(2)}
@@ -728,7 +729,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
           {Number(globalDiscountAmount).toFixed(2) || 0}
         </div>
 
-        <div className="!text-left !font-medium !text-gray-700">Total Stock Expense</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Stock Item Expense</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-blue-800 !font-semibold">
           {totalStockItemExpenses.toFixed(2)}
@@ -751,29 +752,37 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
         <div className="!text-right !text-green-600 !font-semibold">
           {grandTotal.toFixed(2)}
         </div>
+        
 
-        <div className="!text-left !font-medium !text-gray-700">Total Paid For Item</div>
+
+        <div className="!text-left !font-medium !text-gray-700">Total Paid For Stock Item</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-teal-600 !font-semibold">
-          {totalPaidAmount.toFixed(2)}
+          {totalStockPaid.toFixed(2)}
         </div>
 
-        <div className="!text-left !font-medium !text-gray-700">Expense Paid For Stock Item</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Paid For Stock Item Expense</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-teal-600 !font-semibold">
           {getTotalStockItemExpensePaid.toFixed(2)}
         </div>
 
-        <div className="!text-left !font-medium !text-gray-700">Global Expense Paid</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Paid For Global Expense</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-teal-600 !font-semibold">
           {getTotalGlobalExpensePaid.toFixed(2)}
         </div>
 
-        <div className="!text-left !font-medium !text-gray-700">Total Remain For Stock Amount</div>
+        <div className="!text-left !font-medium !text-gray-700">Total Paid</div>
+        <div className="!text-center">:</div>
+        <div className="!text-right !text-teal-600 !font-semibold">
+          {totalPaidAmount.toFixed(2)}
+        </div>
+
+        <div className="!text-left !font-medium !text-gray-700">Total Remain For Stock Item</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-orange-600 !font-semibold">
-          {totalRemainAmount.toFixed(2)}
+          {(totalStockAmount-totalItemDiscount-totalStockPaid).toFixed(2)}
         </div>
 
         <div className="!text-left !font-medium !text-gray-700">Total Remain </div>

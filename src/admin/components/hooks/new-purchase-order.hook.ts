@@ -419,9 +419,6 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   // Sum of paid amounts on expenses
   const totalExpensePaid = expenses.reduce((sum, e) => sum + e.paidAmount, 0);
 
-  // Total paid (stock + expense)
-  const totalPaidAmount = totalStockPaid + totalExpensePaid;
-
   // Global discount amount calculated from globalDiscount and type
   const globalDiscountAmount =
     globalDiscountType.value == 'percent'
@@ -440,8 +437,6 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   const grandTotal =
     totalStockAmount - totalItemDiscount - globalDiscountAmount + globalExpenseAmount + totalStockItemExpenses;
 
-  // Total remain amount = grand total - total paid amount
-  const totalRemainAmount = grandTotal - totalPaidAmount;
 
   const getTotalGlobalExpensePaid = expenses.reduce((sum, expense) => sum + (expense.paidAmount || 0), 0);
 
@@ -452,6 +447,12 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     }, 0);
   
 
+  // Total paid (stock + expense)
+  const totalPaidAmount = totalStockPaid + totalExpensePaid + getTotalStockItemExpensePaid;
+
+  // Total remain amount = grand total - total paid amount
+  const totalRemainAmount = grandTotal - totalPaidAmount;
+  
   // Dummy handlers for UI
   const handleCancel = () => {
     console.log('Cancelled');
@@ -517,6 +518,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     handleOrder,
     handleFullPurchase,
     getTotalGlobalExpensePaid,
-    getTotalStockItemExpensePaid
+    getTotalStockItemExpensePaid,
+    totalStockPaid
   };
 };
