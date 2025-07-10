@@ -55,7 +55,8 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     handleFullPurchase,
     getTotalGlobalExpensePaid,
     getTotalStockItemExpensePaid,
-    totalStockPaid
+    totalStockPaid,
+    totalRemainAmountForStockItem
   } = useNewPurchaseOrder(props);
 
   const [suppliers, setSuppliers] = useState<{ id: string; name: string; }[]>([]);
@@ -752,7 +753,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
         <div className="!text-right !text-green-600 !font-semibold">
           {grandTotal.toFixed(2)}
         </div>
-        
+
 
 
         <div className="!text-left !font-medium !text-gray-700">Total Paid For Stock Item</div>
@@ -782,7 +783,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
         <div className="!text-left !font-medium !text-gray-700">Total Remain For Stock Item</div>
         <div className="!text-center">:</div>
         <div className="!text-right !text-orange-600 !font-semibold">
-          {(totalStockAmount-totalItemDiscount-totalStockPaid).toFixed(2)}
+          {totalRemainAmountForStockItem.toFixed(2)}
         </div>
 
         <div className="!text-left !font-medium !text-gray-700">Total Remain </div>

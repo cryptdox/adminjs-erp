@@ -452,6 +452,9 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
 
   // Total remain amount = grand total - total paid amount
   const totalRemainAmount = grandTotal - totalPaidAmount;
+
+  // Total remain amount = grand total - total paid amount
+  const totalRemainAmountForStockItem = totalStockAmount-totalItemDiscount-totalStockPaid;
   
   // Dummy handlers for UI
   const handleCancel = () => {
@@ -519,6 +522,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     handleFullPurchase,
     getTotalGlobalExpensePaid,
     getTotalStockItemExpensePaid,
-    totalStockPaid
+    totalStockPaid,
+    totalRemainAmountForStockItem
   };
 };
