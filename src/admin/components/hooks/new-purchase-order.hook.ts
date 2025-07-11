@@ -1,5 +1,8 @@
-import { BasePropertyProps } from 'adminjs';
+import { ApiClient, BasePropertyProps, ResourceActionAPIParams, useNotice } from 'adminjs';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { orderSchema, ValidationErrors } from './validations.js';
+import * as Yup from 'yup';
 
 export interface SelectedValue {
   value: string;
@@ -65,7 +68,26 @@ export interface ExpenseType {
   name: string;
 }
 
+export interface PurchaseOrderPayload {
+  orderNumber: string;
+  selectedSupplier: SelectedValue | null;
+  note: string;
+  stockItems: StockItemInput[];
+  expenses: ExpenseInput[];
+  globalDiscount: number;
+  globalDiscountType: SelectedValue;
+  totalPaidAmount: number;
+  totalRemainAmount: number;
+  grandTotal: number;
+}
+
+const api = new ApiClient();
+
 export const useNewPurchaseOrder = (props: BasePropertyProps) => {
+  const { resource } = props;
+  const navigate = useNavigate();
+  const sendNotice = useNotice();
+
   const [orderNumber, setOrderNumber] = useState('');
   const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null);
   const [note, setNote] = useState('');
@@ -74,6 +96,8 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
 
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
   const [globalDiscountType, setGlobalDiscountType] = useState<SelectedValue>({ value: 'amount', label: '$ - Amount' });
+
+  const [errors, setErrors] = useState<ValidationErrors>({});
 
   // Initialize order number once
   useEffect(() => {
@@ -210,14 +234,17 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
         // Ensure paid is not more than discountPrice
         let paid = updated.paid;
         if (paid > discountPrice) paid = discountPrice;
+        if (paid < 0) paid = 0;
 
         const remain = discountPrice - paid;
 
         // Per-item expenses total
         const totalExpense = updated.expenses?.reduce((sum, exp) => sum + (exp.totalAmount || 0), 0) ?? 0;
 
-        const totalDiscount = discountAmount;
-        const afterDiscountPrice = discountPrice;
+        let totalDiscount = discountAmount;
+
+        let afterDiscountPrice = discountPrice;
+        if (afterDiscountPrice < 0) afterDiscountPrice = 0;
 
         const totalCost = gross + totalExpense;
         const totalCostAfterDiscount = discountPrice + totalExpense;
@@ -244,6 +271,12 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     data: { discountType: { value: 'amount'; label: '$ - Amount' } | { value: 'percent'; label: '% - Percent' } }
   ) => {
     updateStockItem(id, data);
+  };
+
+  // Update discount type for stock item
+  const updateGlobalDiscountType = (data: SelectedValue = { value: 'amount', label: '$ - Amount' }) => {
+    setGlobalDiscountType(data);
+    setGlobalDiscount(0);
   };
 
   // NEW: stockItem expense handlers
@@ -299,7 +332,21 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
         if (item.id !== stockItemId) return item;
 
         // Update expenses
-        const updatedExpenses = (item.expenses || []).map((exp) => (exp.id === expenseId ? { ...exp, ...data } : exp));
+        // const updatedExpenses = (item.expenses || []).map((exp) => (exp.id === expenseId ? { ...exp, ...data } : exp));
+        const updatedExpenses = (item.expenses || []).map((exp) => {
+          if (exp.id === expenseId) {
+            const updated = { ...exp, ...data };
+            // Ensure totalAmount and paidAmount are numbers ≥ 0
+            updated.totalAmount = Math.max(Number(updated.totalAmount) || 0, 0);
+            updated.paidAmount = Math.max(Number(updated.paidAmount) || 0, 0);
+            // Clamp paidAmount ≤ totalAmount
+            if (updated.paidAmount > updated.totalAmount) {
+              updated.paidAmount = updated.totalAmount;
+            }
+            return updated;
+          }
+          return exp;
+        });
 
         // Recalculate expense total
         const totalExpense = updatedExpenses.reduce((sum, exp) => sum + (exp.totalAmount || 0), 0);
@@ -367,8 +414,24 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   };
 
   // Update expense item
+  // const updateExpenseItem = (id: string, data: Partial<ExpenseInput>) => {
+  //   setExpenses((prev) => prev.map((item) => (item.id === id ? { ...item, ...data } : item)));
+  // };
   const updateExpenseItem = (id: string, data: Partial<ExpenseInput>) => {
-    setExpenses((prev) => prev.map((item) => (item.id === id ? { ...item, ...data } : item)));
+    setExpenses((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        const updated = { ...item, ...data };
+        // Ensure totalAmount and paidAmount are ≥ 0
+        updated.totalAmount = Math.max(Number(updated.totalAmount) || 0, 0);
+        updated.paidAmount = Math.max(Number(updated.paidAmount) || 0, 0);
+        // Ensure paidAmount ≤ totalAmount
+        if (updated.paidAmount > updated.totalAmount) {
+          updated.paidAmount = updated.totalAmount;
+        }
+        return updated;
+      })
+    );
   };
 
   // Calculate expense per unit for a stock item (unitPrice + expense per quantity)
@@ -437,15 +500,12 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   const grandTotal =
     totalStockAmount - totalItemDiscount - globalDiscountAmount + globalExpenseAmount + totalStockItemExpenses;
 
-
   const getTotalGlobalExpensePaid = expenses.reduce((sum, expense) => sum + (expense.paidAmount || 0), 0);
 
-  const getTotalStockItemExpensePaid : number = 
-    stockItems.reduce((totalPaid, item) => {
-      const itemExpensePaid = (item.expenses || []).reduce((sum, exp) => sum + (exp.paidAmount || 0), 0);
-      return totalPaid + itemExpensePaid;
-    }, 0);
-  
+  const getTotalStockItemExpensePaid: number = stockItems.reduce((totalPaid, item) => {
+    const itemExpensePaid = (item.expenses || []).reduce((sum, exp) => sum + (exp.paidAmount || 0), 0);
+    return totalPaid + itemExpensePaid;
+  }, 0);
 
   // Total paid (stock + expense)
   const totalPaidAmount = totalStockPaid + totalExpensePaid + getTotalStockItemExpensePaid;
@@ -454,15 +514,28 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   const totalRemainAmount = grandTotal - totalPaidAmount;
 
   // Total remain amount = grand total - total paid amount
-  const totalRemainAmountForStockItem = totalStockAmount-totalItemDiscount-totalStockPaid;
-  
+  const totalRemainAmountForStockItem = totalStockAmount - totalItemDiscount - totalStockPaid;
+
+  console.log('props: ', props);
+  const handleSubmit = async (payload) => {
+    const actionParam: ResourceActionAPIParams = {
+      resourceId: resource.id,
+      actionName: 'new',
+      method: 'post',
+      data: payload,
+    };
+
+    const response = await api.resourceAction(actionParam);
+    return response;
+  };
+
   // Dummy handlers for UI
   const handleCancel = () => {
     console.log('Cancelled');
   };
 
-  const handleOrder = () => {
-    console.log('Order Submitted', {
+  const handleOrder = async () => {
+    const payload = {
       orderNumber,
       selectedSupplier,
       note,
@@ -473,7 +546,26 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
       totalPaidAmount,
       totalRemainAmount,
       grandTotal,
-    });
+    };
+
+    try {
+      await orderSchema.validate(payload, { abortEarly: false });
+      setErrors({});
+      console.log('Order Submitted', payload);
+      await handleSubmit(payload);
+    } catch (err) {
+      if (err instanceof Yup.ValidationError) {
+        sendNotice({ type: 'error', message: 'Validation failed!' });
+        if (err.inner) {
+          const errorMap = {};
+          err.inner.forEach((err) => {
+            const path = err.path;
+            errorMap[path] = err.message;
+          });
+          setErrors(errorMap);
+        }
+      }
+    }
   };
 
   const handleFullPurchase = () => {
@@ -523,6 +615,8 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     getTotalGlobalExpensePaid,
     getTotalStockItemExpensePaid,
     totalStockPaid,
-    totalRemainAmountForStockItem
+    totalRemainAmountForStockItem,
+    updateGlobalDiscountType,
+    errors,
   };
 };

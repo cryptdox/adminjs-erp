@@ -56,8 +56,12 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     getTotalGlobalExpensePaid,
     getTotalStockItemExpensePaid,
     totalStockPaid,
-    totalRemainAmountForStockItem
+    totalRemainAmountForStockItem,
+    updateGlobalDiscountType,
+    errors
   } = useNewPurchaseOrder(props);
+
+  console.log("errors: ", errors)
 
   const [suppliers, setSuppliers] = useState<{ id: string; name: string; }[]>([]);
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
@@ -130,6 +134,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
             placeholder="Select Supplier"
             className="!w-full custom-partner-select !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
           />
+          {errors.selectedSupplier && <p className="!pt-2 !text-red-600">{errors.selectedSupplier}</p>}
         </div>
       </div>
 
@@ -143,15 +148,18 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
           placeholder="Optional notes"
           className="!w-full !p-3 !border !border-gray-300 !rounded-md !resize-none focus:!border-indigo-500 focus:!ring-1 focus:!ring-indigo-300 !transition !duration-200 !ease-in-out !bg-white !text-gray-800"
         />
+        {errors.note && <p className="!pt-2 !text-red-600">{errors.note}</p>}
       </div>
 
 
       {/* Stock Items */}
-      <h3 className="!text-xl !font-semibold !mb-4 !text-indigo-500 !pb-2">
+      <h3 className="!text-xl !font-semibold !text-indigo-500 !pb-2">
         Stock Items
       </h3>
+      {errors[`stockItems`] && (<p className="!py-2 !text-red-600">{errors[`stockItems`]}</p>)}
+      <div className="!mb-4"></div>
 
-      {stockItems.map((item) => {
+      {stockItems.map((item, index) => {
         const variants = item.product?.value ? variantMap[item.product?.value] : [];
         const calculatedUnit = calculateExpensePerUnit(item).toFixed(2);
         return (
@@ -178,6 +186,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   placeholder="Select Product"
                   className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
                 />
+                {errors[`stockItems[${index}].product.value`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].product.value`]}</p>)}
               </div>
 
               <div>
@@ -196,6 +205,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   placeholder="Select Variant"
                   className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
                 />
+                {errors[`stockItems[${index}].variant.value`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].variant.value`]}</p>)}
               </div>
 
               <div>
@@ -212,6 +222,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   placeholder="Select Warehouse"
                   className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
                 />
+                {errors[`stockItems[${index}].warehouse.value`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].warehouse.value`]}</p>)}
               </div>
             </div>
 
@@ -230,6 +241,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   }
                   className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-emerald-500 !transition"
                 />
+                {errors[`stockItems[${index}].manufactureDate`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].manufactureDate`]}</p>)}
               </div>
               <div>
                 <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Expiry Date</Label>
@@ -243,6 +255,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   }
                   className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-rose-500 !transition"
                 />
+                {errors[`stockItems[${index}].expiryDate`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].expiryDate`]}</p>)}
               </div>
             </div>
 
@@ -258,8 +271,10 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       unitPrice: Number(e.target.value),
                     })
                   }
+                  min={0}
                   className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
                 />
+                {errors[`stockItems[${index}].unitPrice`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].unitPrice`]}</p>)}
               </div>
               <div>
                 <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Quantity</Label>
@@ -271,8 +286,10 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       quantity: Number(e.target.value),
                     })
                   }
+                  min={0}
                   className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
                 />
+                {errors[`stockItems[${index}].quantity`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].quantity`]}</p>)}
               </div>
             </div>
 
@@ -282,13 +299,16 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                 <Input
                   type="number"
                   value={item.discount}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const inputValue = Number(e.target.value);
+                    const cappedValue = Math.min(inputValue, 100);
                     updateStockItem(item.id, {
-                      discount: Number(e.target.value),
+                      discount: Number(item.discountType.value == 'percent' ? cappedValue : e.target.value),
                     })
-                  }
+                  }}
                   className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-yellow-400 !transition"
                 />
+                {errors[`stockItems[${index}].discount`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].discount`]}</p>)}
               </div>
 
               <div>
@@ -307,6 +327,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                   placeholder="Select Discount Type"
                   className="!w-full !bg-green-100"
                 />
+                {errors[`stockItems[${index}].discountType`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].discountType`]}</p>)}
               </div>
             </div>
             <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mt-4">
@@ -321,9 +342,11 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       const cappedValue = Math.min(inputValue, item.afterDiscountPrice);
                       updateStockItem(item.id, { paid: cappedValue });
                     }}
+                    min={0}
                     max={item.afterDiscountPrice}
                     className="!w-full !border border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
                   />
+                  {errors[`stockItems[${index}].paid`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].paid`]}</p>)}
                   <div className="!flex !items-center !gap-1">
                     <input
                       type="checkbox"
@@ -352,9 +375,11 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       const cappedValue = Math.min(inputValue, item.quantity);
                       updateStockItem(item.id, { receivedQuantity: cappedValue });
                     }}
+                    min={0}
                     max={item.quantity}
                     className="!w-full !border !border-slate-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
                   />
+                  {errors[`stockItems[${index}].receivedQuantity`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].receivedQuantity`]}</p>)}
                   <div className="!flex !items-center !gap-1">
                     <input
                       type="checkbox"
@@ -377,7 +402,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
             <div className="!mt-6">
               <Label className="!text-sm !font-bold !text-indigo-600 !mb-2 !block">Item Expenses</Label>
 
-              {item?.expenses.map((exp) => (
+              {item?.expenses.map((exp, exp_index) => (
                 <div
                   key={exp.id}
                   className="!grid !grid-cols-1 md:!grid-cols-2 !gap-4 !mb-4 !p-4 !rounded-md !bg-white !border !border-gray-200"
@@ -393,6 +418,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       placeholder="Expense Type"
                       className="!w-full"
                     />
+                    {errors[`stockItems[${index}].expenses[${exp_index}].expenseType.value`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].expenses[${exp_index}].expenseType.value`]}</p>)}
                   </div>
 
                   <div className="!w-full">
@@ -406,6 +432,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       placeholder="Partner"
                       className="!w-full"
                     />
+                    {errors[`stockItems[${index}].expenses[${exp_index}].partner.value`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].expenses[${exp_index}].partner.value`]}</p>)}
                   </div>
 
                   <div className="!w-full">
@@ -417,8 +444,10 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       onChange={(e) =>
                         updateStockItemExpense(item.id, exp.id, { totalAmount: Number(e.target.value) })
                       }
+                      min={0}
                       className="!w-full"
                     />
+                    {errors[`stockItems[${index}].expenses[${exp_index}].totalAmount`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].expenses[${exp_index}].totalAmount`]}</p>)}
                   </div>
 
                   <div className="!w-full">
@@ -430,8 +459,10 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       onChange={(e) =>
                         updateStockItemExpense(item.id, exp.id, { paidAmount: Number(e.target.value) })
                       }
+                      min={0}
                       className="!w-full"
                     />
+                    {errors[`stockItems[${index}].expenses[${exp_index}].paidAmount`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].expenses[${exp_index}].paidAmount`]}</p>)}
                   </div>
 
                   <div className="!w-full md:!col-span-2">
@@ -445,6 +476,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       }
                       className="!w-full"
                     />
+                    {errors[`stockItems[${index}].expenses[${exp_index}].note`] && (<p className="!pt-2 !text-red-600">{errors[`stockItems[${index}].expenses[${exp_index}].note`]}</p>)}
                   </div>
 
                   <div className="!w-full md:!col-span-2 !flex !justify-end">
@@ -565,7 +597,6 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
           </div>
         );
       })}
-
       <Button
         onClick={addStockItem}
         variant="primary"
@@ -574,12 +605,13 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
         + Add Stock Item
       </Button>
 
+
       {/* Expenses Section */}
       <h3 className="!text-xl !font-semibold !mb-4 !text-indigo-500 !pb-2">
         Expenses
       </h3>
 
-      {expenses.map((exp) => (
+      {expenses.map((exp, index) => (
         <div
           key={exp.id}
           className="!border !border-indigo-200 !rounded-xl !p-5 !mb-6 !bg-indigo-50/20 shadow-sm transition hover:shadow-md"
@@ -601,6 +633,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                 isLoading={!suppliers.length}
                 className="!w-full custom-partner-select !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
               />
+              {errors[`expenses[${index}].partner.value`] && (<p className="!pt-2 !text-red-600">{errors[`expenses[${index}].partner.value`]}</p>)}
             </div>
 
             <div>
@@ -618,6 +651,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                 placeholder="Select Type"
                 className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
               />
+              {errors[`expenses[${index}].expenseType.value`] && (<p className="!pt-2 !text-red-600">{errors[`expenses[${index}].expenseType.value`]}</p>)}
             </div>
 
             <div>
@@ -633,6 +667,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                 }
                 className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-emerald-500"
               />
+              {errors[`expenses[${index}].totalAmount`] && (<p className="!pt-2 !text-red-600">{errors[`expenses[${index}].totalAmount`]}</p>)}
             </div>
 
             <div>
@@ -648,6 +683,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                 }
                 className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
               />
+              {errors[`expenses[${index}].paidAmount`] && (<p className="!pt-2 !text-red-600">{errors[`expenses[${index}].paidAmount`]}</p>)}
             </div>
 
             <div className="!col-span-1 sm:!col-span-2">
@@ -659,6 +695,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                 placeholder="Optional note"
                 className="!w-full !border !border-slate-300 !rounded-md !shadow-sm !resize-none !transition focus:!ring-2 focus:!ring-yellow-400"
               />
+              {errors[`expenses[${index}].note`] && (<p className="!pt-2 !text-red-600">{errors[`expenses[${index}].note`]}</p>)}
             </div>
           </div>
 
@@ -690,23 +727,26 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
           <Input
             type="number"
             value={globalDiscount}
-            onChange={(e) => setGlobalDiscount(Number(e.target.value))}
+            min={0}
+            onChange={(e) => {
+              const inputValue = Number(e.target.value);
+              const cappedValue = Math.min(inputValue, 100);
+              setGlobalDiscount(Number(globalDiscountType.value == 'percent' ? cappedValue : e.target.value))
+            }}
             className="!w-full !border !border-gray-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
             placeholder="Discount Value"
           />
+          {errors[`globalDiscount`] && (<p className="!pt-2 !text-red-600">{errors[`globalDiscount`]}</p>)}
           <Select
             value={globalDiscountType}
-            onChange={(selected) =>
-              setGlobalDiscountType(
-                selected || { value: "amount", label: "$ - Amount" }
-              )
-            }
+            onChange={(selected) => updateGlobalDiscountType(selected)}
             options={[
               { value: "percent", label: "% - Percent" },
               { value: "amount", label: "$ - Amount" },
             ]}
             className="!w-full !border !border-gray-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
           />
+          {errors[`globalDiscountType`] && (<p className="!pt-2 !text-red-600">{errors[`globalDiscountType`]}</p>)}
         </div>
       </div>
 
@@ -791,7 +831,13 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
         <div className="!text-right !text-orange-600 !font-semibold">
           {totalRemainAmount.toFixed(2)}
         </div>
+        <div className="!col-span-3">
+          {errors[`grandTotal`] && (<p className="!pt-2 !text-red-600">{errors[`grandTotal`]}</p>)}
+          {errors[`totalPaidAmount`] && (<p className="!pt-2 !text-red-600">{errors[`totalPaidAmount`]}</p>)}
+          {errors[`totalRemainAmount`] && (<p className="!pt-2 !text-red-600">{errors[`totalRemainAmount`]}</p>)}
+        </div>
       </div>
+
 
       {/* Action Buttons */}
       <Box className="!flex !justify-end !gap-4 !mt-6">
