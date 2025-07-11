@@ -1,7 +1,7 @@
 import { ApiClient, BasePropertyProps, ResourceActionAPIParams, useNotice } from 'adminjs';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { orderSchema, ValidationErrors } from './validations.js';
+import { orderSchema, ValidationErrors } from '../../validations.js';
 import * as Yup from 'yup';
 
 export interface SelectedValue {
@@ -88,6 +88,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   const navigate = useNavigate();
   const sendNotice = useNotice();
 
+  const [showModal, setShowModal] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
   const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null);
   const [note, setNote] = useState('');
@@ -534,25 +535,22 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     console.log('Cancelled');
   };
 
-  const handleOrder = async () => {
-    const payload = {
-      orderNumber,
-      selectedSupplier,
-      note,
-      stockItems,
-      expenses,
-      globalDiscount,
-      globalDiscountType,
-      totalPaidAmount,
-      totalRemainAmount,
-      grandTotal,
-    };
-
+  const validate = async () => {
     try {
+      const payload = {
+        orderNumber,
+        selectedSupplier,
+        note,
+        stockItems,
+        expenses,
+        globalDiscount,
+        globalDiscountType,
+        totalPaidAmount,
+        totalRemainAmount,
+        grandTotal,
+      };
       await orderSchema.validate(payload, { abortEarly: false });
-      setErrors({});
-      console.log('Order Submitted', payload);
-      await handleSubmit(payload);
+      setShowModal(true);
     } catch (err) {
       if (err instanceof Yup.ValidationError) {
         sendNotice({ type: 'error', message: 'Validation failed!' });
@@ -568,8 +566,27 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     }
   };
 
-  const handleFullPurchase = () => {
-    console.log('Full Purchase Submitted');
+  const handleOrder = async () => {
+    const payload = {
+      orderNumber,
+      selectedSupplier,
+      note,
+      stockItems,
+      expenses,
+      globalDiscount,
+      globalDiscountType,
+      totalPaidAmount,
+      totalRemainAmount,
+      grandTotal,
+    };
+
+    try {
+      const {
+        data: { notice, record, redirectUrl },
+      } = await handleSubmit(payload);
+      sendNotice(notice);
+      navigate(redirectUrl);
+    } catch (err) {}
   };
 
   return {
@@ -593,7 +610,6 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     globalDiscount,
     setGlobalDiscount,
     globalDiscountType,
-    setGlobalDiscountType,
     fetchSuppliers,
     fetchProducts,
     fetchVariants,
@@ -611,12 +627,14 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     totalRemainAmount,
     handleCancel,
     handleOrder,
-    handleFullPurchase,
     getTotalGlobalExpensePaid,
     getTotalStockItemExpensePaid,
     totalStockPaid,
     totalRemainAmountForStockItem,
     updateGlobalDiscountType,
     errors,
+    showModal,
+    setShowModal,
+    validate,
   };
 };

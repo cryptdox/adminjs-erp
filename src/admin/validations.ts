@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import { isAfter, isBefore, parseISO } from 'date-fns'; // optional but cleaner date logic
 
 export type ValidationErrors = {
   [fieldPath: string]: string;
@@ -24,8 +25,21 @@ export const stockItemSchema = Yup.object({
   product: selectedValueSchema.required('Product is required'),
   variant: selectedValueSchema.required('Variant is required'),
   warehouse: selectedValueSchema.required('Warehouse is required'),
-  manufactureDate: Yup.string().required('Manufacture date is required'),
-  expiryDate: Yup.string().required('Expiry date is required'),
+  manufactureDate: Yup.string()
+    .required('Manufacture date is required')
+    .test('not-in-future', 'Manufacture date cannot be in the future', (value) => {
+      if (!value) return false;
+      const today = new Date();
+      const manuf = new Date(value);
+      return manuf <= today;
+    }),
+  expiryDate: Yup.string()
+    .required('Expiry date is required')
+    .test('after-manufacture', 'Expiry date must be after manufacture date', function (value) {
+      const { manufactureDate } = this.parent;
+      if (!value || !manufactureDate) return false;
+      return new Date(value) >= new Date(manufactureDate);
+    }),
   unitPrice: Yup.number().moreThan(0, 'Unit price must be > 0').required('Required'),
   quantity: Yup.number().moreThan(0, 'Quantity must be > 0').required('Required'),
   paid: Yup.number().min(0, 'Paid cannot be negative').required('Required'),

@@ -4,7 +4,9 @@ import {
   Button,
   Input,
   Label,
+  Modal,
   Select,
+  Text,
   TextArea,
 } from "@adminjs/design-system";
 import { BasePropertyProps } from "adminjs";
@@ -34,7 +36,6 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     globalDiscount,
     setGlobalDiscount,
     globalDiscountType,
-    setGlobalDiscountType,
     fetchSuppliers,
     fetchProducts,
     fetchVariants,
@@ -52,13 +53,15 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     totalRemainAmount,
     handleCancel,
     handleOrder,
-    handleFullPurchase,
     getTotalGlobalExpensePaid,
     getTotalStockItemExpensePaid,
     totalStockPaid,
     totalRemainAmountForStockItem,
     updateGlobalDiscountType,
-    errors
+    errors,
+    showModal,
+    setShowModal,
+    validate
   } = useNewPurchaseOrder(props);
 
   console.log("errors: ", errors)
@@ -851,20 +854,27 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
 
         <Button
           variant="primary"
-          onClick={handleOrder}
+          onClick={() => validate()}
           className="!px-4 !py-2 !rounded-md !text-sm !font-medium !transition"
         >
-          Order
-        </Button>
-
-        <Button
-          variant="success"
-          onClick={handleFullPurchase}
-          className="!px-4 !py-2 !rounded-md !text-sm !font-medium !transition"
-        >
-          Full Purchase
+          Save Order
         </Button>
       </Box>
+      {showModal && (
+        <Modal onClose={() => setShowModal(false)}>
+          <Text fontWeight="bold" mb="lg">Do you want to save this order?</Text>
+          <Text mb="xl">Make sure everything looks correct before submitting.</Text>
+
+          <Box flex justifyContent="flex-end" gap="lg">
+            <Button variant="text" onClick={() => setShowModal(false)}>
+              No, Cancel
+            </Button>
+            <Button variant="primary" onClick={handleOrder}>
+              Yes, Save Order
+            </Button>
+          </Box>
+        </Modal>
+      )}
 
     </div>
   );
