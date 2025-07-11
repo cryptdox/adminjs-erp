@@ -26,6 +26,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
           try {
             const validatedData = await orderSchema.validate(request.payload, { abortEarly: false });
 
+            // TO DO DB OPERATION
+
             return {
               record: validatedData,
               notice: {
