@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
   // output   = "../generated/prisma"
 }
 
@@ -31,13 +32,13 @@ model User {
   roleId                     String?
   Role                       Role?                        @relation(fields: [roleId], references: [id])
   PurchaseOrderStatusHistory PurchaseOrderStatusHistory[]
-  InvoiceStatusHistory       InvoiceStatusHistory[]
-  StockStatusHistory         StockStatusHistory[]
   SaleOrderStatusHistory     SaleOrderStatusHistory[]
-  ExpenseStatusHistory       ExpenseStatusHistory[]
   Payment                    Payment[]
   AuditLog                   AuditLog[]
   Partner                    Partner?                     @relation
+  Stock                      Stock[]
+  Expense                    Expense[]
+  Invoice                    Invoice[]
 
   @@index([roleId], name: "IX_User_RoleId")
 }
@@ -256,58 +257,38 @@ model StockStatus {
   deletedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
-  stocks  Stock[]
-  history StockStatusHistory[]
+  stocks      Stock[]
 }
 
 model Stock {
-  id                 String               @id @default(uuid())
-  productVariantId   String
-  productVariant     Variant              @relation(fields: [productVariantId], references: [id])
-  warehouseId        String
-  warehouse          Warehouse            @relation(fields: [warehouseId], references: [id])
-  lotId              String? // Optional lot tracking
-  lot                Lot?                 @relation(fields: [lotId], references: [id])
-  batchId            String? // Optional batch tracking
-  batch              Batch?               @relation(fields: [batchId], references: [id])
-  note               String?
-  quantity           Int                  @default(0)
-  isActive           Boolean              @default(true)
-  isAllowed          Boolean              @default(true)
-  isDeleted          Boolean              @default(false)
-  deletedAt          DateTime?
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  ManufactureInput   ManufactureInput[]
-  ManufactureOutput  ManufactureOutput[]
-  InvoiceItem        InvoiceItem[]
-  StockStatus        StockStatus?         @relation(fields: [stockStatusId], references: [id])
-  stockStatusId      String?
-  StockStatusHistory StockStatusHistory[]
-  StockType          StockType?           @relation(fields: [stockTypeId], references: [id])
-  stockTypeId        String?
+  id                String              @id @default(uuid())
+  productVariantId  String
+  productVariant    Variant             @relation(fields: [productVariantId], references: [id])
+  warehouseId       String
+  warehouse         Warehouse           @relation(fields: [warehouseId], references: [id])
+  lotId             String? // Optional lot tracking
+  lot               Lot?                @relation(fields: [lotId], references: [id])
+  batchId           String? // Optional batch tracking
+  batch             Batch?              @relation(fields: [batchId], references: [id])
+  note              String?
+  quantity          Int                 @default(0)
+  isActive          Boolean             @default(true)
+  isAllowed         Boolean             @default(true)
+  isDeleted         Boolean             @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  ManufactureInput  ManufactureInput[]
+  ManufactureOutput ManufactureOutput[]
+  InvoiceItem       InvoiceItem[]
+  CreatedBy         User?               @relation(fields: [createdById], references: [id])
+  createdById       String?
+  StockStatus       StockStatus?        @relation(fields: [stockStatusId], references: [id])
+  stockStatusId     String?
+  StockType         StockType?          @relation(fields: [stockTypeId], references: [id])
+  stockTypeId       String?
 
   @@index([stockTypeId, warehouseId])
-}
-
-model StockStatusHistory {
-  id          String      @id @default(uuid())
-  stockId     String
-  stock       Stock       @relation(fields: [stockId], references: [id])
-  statusId    String
-  status      StockStatus @relation(fields: [statusId], references: [id])
-  quantity    Int
-  changedById String?
-  changedBy   User?       @relation(fields: [changedById], references: [id])
-  note        String?
-  changedAt   DateTime    @default(now())
-  isActive    Boolean     @default(true)
-  isAllowed   Boolean     @default(true)
-  isDeleted   Boolean     @default(false)
-  deletedAt   DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
 }
 
 // MANUFACTURE MANAGEMENT
@@ -520,85 +501,59 @@ model InvoiceType {
   Invoice     Invoice[]
 }
 
-model InvoiceStatus {
-  id                   String                 @id @default(uuid())
-  name                 String                 @unique
-  description          String?
-  isActive             Boolean                @default(true)
-  isAllowed            Boolean                @default(true)
-  isDeleted            Boolean                @default(false)
-  deletedAt            DateTime?
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  Invoice              Invoice[]
-  InvoiceStatusHistory InvoiceStatusHistory[]
-}
-
 model Invoice {
-  id                   String                 @id @default(uuid())
-  invoiceNumber        String                 @unique
-  invoiceTypeId        String // "SALES" or "PURCHASE" or "EXPENSE"
-  invoiceType          InvoiceType            @relation(fields: [invoiceTypeId], references: [id]) // "SALES" or "PURCHASE" or "EXPENSE"
-  accountId            String // Customer (for SALES) or Supplier (for PURCHASE or EXPENSE)
-  account              Account                @relation(fields: [accountId], references: [id])
-  invoiceDate          DateTime
-  dueDate              DateTime?
-  invoiceStatusId      String
-  invoiceStatus        InvoiceStatus          @relation(fields: [invoiceStatusId], references: [id]) // e.g. "unpaid", "partial", "paid", "cancelled"
-  totalAmount          Decimal                @default(0.0)
-  paidAmount           Decimal                @default(0.0)
-  note                 String?
-  isActive             Boolean                @default(true)
-  isAllowed            Boolean                @default(true)
-  isDeleted            Boolean                @default(false)
-  deletedAt            DateTime?
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  items                InvoiceItem[]
-  transactions         Transaction[] // optional: payments made
-  PurchaseOrder        PurchaseOrder?         @relation(fields: [purchaseOrderId], references: [id])
-  purchaseOrderId      String?
-  InvoiceStatusHistory InvoiceStatusHistory[]
-  SaleOrder            SaleOrder?             @relation(fields: [saleOrderId], references: [id])
-  saleOrderId          String?
-  Expense              Expense?               @relation(fields: [expenseId], references: [id])
-  expenseId            String?
+  id              String         @id @default(uuid())
+  invoiceNumber   String         @unique
+  invoiceTypeId   String // "SALES" or "PURCHASE" or "EXPENSE"
+  invoiceType     InvoiceType    @relation(fields: [invoiceTypeId], references: [id]) // "SALES" or "PURCHASE" or "EXPENSE"
+  accountId       String // Customer (for SALES) or Supplier (for PURCHASE or EXPENSE)
+  account         Account        @relation(fields: [accountId], references: [id])
+  invoiceDate     DateTime
+  dueDate         DateTime?
+  totalAmount     Decimal        @default(0.0)
+  paidAmount      Decimal        @default(0.0)
+  note            String?
+  isActive        Boolean        @default(true)
+  isAllowed       Boolean        @default(true)
+  isDeleted       Boolean        @default(false)
+  deletedAt       DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  CreatedBy       User?          @relation(fields: [userId], references: [id])
+  items           InvoiceItem[]
+  transactions    Transaction[] // optional: payments made
+  PurchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  purchaseOrderId String?
+  SaleOrder       SaleOrder?     @relation(fields: [saleOrderId], references: [id])
+  saleOrderId     String?
+  Expense         Expense[]
+  userId          String?
 }
 
-model InvoiceStatusHistory {
-  id          String        @id @default(uuid())
-  invoiceId   String
-  invoice     Invoice       @relation(fields: [invoiceId], references: [id])
-  statusId    String
-  status      InvoiceStatus @relation(fields: [statusId], references: [id])
-  changedById String? // optional: who updated
-  changedBy   User?         @relation(fields: [changedById], references: [id])
-  note        String?
-  changedAt   DateTime      @default(now())
-  isActive    Boolean       @default(true)
-  isAllowed   Boolean       @default(true)
-  isDeleted   Boolean       @default(false)
-  deletedAt   DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+enum DiscountType {
+  PERCENT
+  AMOUNT
 }
 
 model InvoiceItem {
-  id         String    @id @default(uuid())
-  name       String?
-  invoiceId  String
-  invoice    Invoice   @relation(fields: [invoiceId], references: [id])
-  stockId    String // Optional: only for SALES and PURCHASE
-  stock      Stock?    @relation(fields: [stockId], references: [id])
-  unitPrice  Decimal?
-  totalPrice Decimal?
-  note       String?
-  isActive   Boolean   @default(true)
-  isAllowed  Boolean   @default(true)
-  isDeleted  Boolean   @default(false)
-  deletedAt  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id           String       @id @default(uuid())
+  name         String?
+  invoiceId    String
+  invoice      Invoice      @relation(fields: [invoiceId], references: [id])
+  stockId      String // Optional: only for SALES and PURCHASE
+  stock        Stock?       @relation(fields: [stockId], references: [id])
+  unitPrice    Decimal?
+  // totalPrice   Decimal?
+  discount     Decimal?
+  discountType DiscountType @default(AMOUNT)
+  note         String?
+  isActive     Boolean      @default(true)
+  isAllowed    Boolean      @default(true)
+  isDeleted    Boolean      @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  Expense      Expense[]
 
   @@index([invoiceId])
 }
@@ -703,54 +658,42 @@ model ExpenseType {
 }
 
 model Expense {
-  id                   String                 @id @default(uuid())
-  orderNumber          String                 @unique
-  expenseTypeId        String
-  expenseType          ExpenseType            @relation(fields: [expenseTypeId], references: [id])
-  partnerId            String
-  partner              Partner                @relation(fields: [partnerId], references: [id])
-  orderDate            DateTime
-  note                 String?
-  isActive             Boolean                @default(true)
-  isAllowed            Boolean                @default(true)
-  isDeleted            Boolean                @default(false)
-  deletedAt            DateTime?
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  invoices             Invoice[]
-  ExpenseStatusHistory ExpenseStatusHistory[]
+  id              String        @id @default(uuid())
+  orderNumber     String
+  expenseTypeId   String
+  expenseType     ExpenseType   @relation(fields: [expenseTypeId], references: [id])
+  partnerId       String
+  partner         Partner       @relation(fields: [partnerId], references: [id])
+  orderDate       DateTime
+  note            String?
+  isActive        Boolean       @default(true)
+  isAllowed       Boolean       @default(true)
+  isDeleted       Boolean       @default(false)
+  deletedAt       DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  userId          String?
+  CreatedBy       User?         @relation(fields: [userId], references: [id])
+  expenseStatusId String
+  ExpenseStatus   ExpenseStatus @relation(fields: [expenseStatusId], references: [id])
+  invoiceId       String?
+  Invoice         Invoice?      @relation(fields: [invoiceId], references: [id])
+  invoiceItemId   String?
+  InvoiceItem     InvoiceItem?  @relation(fields: [invoiceItemId], references: [id])
 }
 
 model ExpenseStatus {
-  id                   String                 @id @default(uuid())
-  name                 String                 @unique // e.g., "pending", "partial", "completed", "cancelled"
-  displayName          String // e.g., "Pending", "Partially Fulfilled"
-  description          String?
-  isActive             Boolean                @default(true)
-  isAllowed            Boolean                @default(true)
-  isDeleted            Boolean                @default(false)
-  deletedAt            DateTime?
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  ExpenseStatusHistory ExpenseStatusHistory[]
-}
-
-model ExpenseStatusHistory {
-  id          String        @id @default(uuid())
-  expenseId   String
-  expense     Expense       @relation(fields: [expenseId], references: [id])
-  statusId    String
-  status      ExpenseStatus @relation(fields: [statusId], references: [id])
-  changedById String? // optional: who changed it (User)
-  changedBy   User?         @relation(fields: [changedById], references: [id])
-  note        String?
-  changedAt   DateTime      @default(now())
-  isActive    Boolean       @default(true)
-  isAllowed   Boolean       @default(true)
-  isDeleted   Boolean       @default(false)
+  id          String    @id @default(uuid())
+  name        String    @unique // e.g., "pending", "partial", "completed", "cancelled"
+  displayName String // e.g., "Pending", "Partially Fulfilled"
+  description String?
+  isActive    Boolean   @default(true)
+  isAllowed   Boolean   @default(true)
+  isDeleted   Boolean   @default(false)
   deletedAt   DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  Expense     Expense[]
 }
 
 // enum PaymentStatus {

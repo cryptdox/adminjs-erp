@@ -100,18 +100,21 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
 
   const [errors, setErrors] = useState<ValidationErrors>({});
 
-  // Initialize order number once
-  useEffect(() => {
-    const newOrderNum = `PO-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-001`;
-    setOrderNumber(newOrderNum);
-  }, []);
+useEffect(() => {
+  const now = new Date();
+  const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+  const timePart = now.toTimeString().slice(0, 8).replace(/:/g, '');  // HHMMSS
+  const randomPart = Math.floor(1000 + Math.random() * 9000);         // 4-digit random number
+  const newOrderNum = `PO-${datePart}${timePart}-${randomPart}`;
+  setOrderNumber(newOrderNum);
+}, []);
 
   // Fetchers for data
-  const fetchSuppliers = async (): Promise<Partner[]> => {
+  const fetchPartners = async (): Promise<Partner[]> => {
     const res = await fetch('/admin/api/resources/Partner/actions/list', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filters: { type: 'SUPPLIER' }, page: 1, perPage: 100 }),
+      body: JSON.stringify({ page: 1, perPage: 100 }),
     });
     const result = await res.json();
     return result.records.map((r: any) => ({
@@ -549,7 +552,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
         totalRemainAmount,
         grandTotal,
       };
-      await orderSchema.validate(payload, { abortEarly: false });
+      // await orderSchema.validate(payload, { abortEarly: false });
       setShowModal(true);
     } catch (err) {
       if (err instanceof Yup.ValidationError) {
@@ -610,7 +613,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     globalDiscount,
     setGlobalDiscount,
     globalDiscountType,
-    fetchSuppliers,
+    fetchPartners,
     fetchProducts,
     fetchVariants,
     fetchWarehouses,

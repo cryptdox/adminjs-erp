@@ -14,7 +14,6 @@ import { LotResource } from './resources/lot.config.adminjs.js';
 import { StockTypeResource } from './resources/stock-type.config.adminjs.js';
 import { StockStatusResource } from './resources/stock-status.config.adminjs.js';
 import { StockResource } from './resources/stock.config.adminjs.js';
-import { StockStatusHistoryResource } from './resources/stock-status-history.config.adminjs.js';
 import { ManufactureResource } from './resources/manufacture.config.adminjs.js';
 import { ManufactureInputResource } from './resources/manufacture-input.config.adminjs.js';
 import { ManufactureOutputResource } from './resources/manufacture-output.config.adminjs.js';
@@ -25,9 +24,7 @@ import { LedgerEntryResource } from './resources/ledger-entry.config.adminjs.js'
 import { PartnerResource } from './resources/partner.config.adminjs.js';
 import { ShareHolderProfitShareResource } from './resources/share-holder-profit-share.config.adminjs.js';
 import { InvoiceTypeResource } from './resources/invoice-type.config.adminjs.js';
-import { InvoiceStatusResource } from './resources/invoice-status.config.adminjs.js';
 import { InvoiceResource } from './resources/invoice.config.adminjs.js';
-import { InvoiceStatusHistoryResource } from './resources/invoice-status-history.config.adminjs.js';
 import { InvoiceItemResource } from './resources/invoice-item.config.adminjs.js';
 import { OrderStatusResource } from './resources/order-status.config.adminjs.js';
 import { PurchaseOrderResource } from './resources/purchase-order.config.adminjs.js';
@@ -37,7 +34,6 @@ import { SaleOrderStatusHistoryResource } from './resources/sale-order-status-hi
 import { ExpenseTypeResource } from './resources/expense-type.config.adminjs.js';
 import { ExpenseResource } from './resources/expense.config.adminjs.js';
 import { ExpenseStatusResource } from './resources/expense-status.config.adminjs.js';
-import { ExpenseStatusHistoryResource } from './resources/expense-status-history.config.adminjs.js';
 import { PaymentStatusResource } from './resources/payment-status.config.adminjs.js';
 import { RelatedTypeResource } from './resources/related-type.config.adminjs.js';
 import { PaymentResource } from './resources/payment.config.adminjs.js';
@@ -80,7 +76,6 @@ const options: AdminJSOptions = {
     StockTypeResource,
     StockStatusResource,
     StockResource,
-    StockStatusHistoryResource,
     ManufactureResource,
     ManufactureInputResource,
     ManufactureOutputResource,
@@ -91,9 +86,7 @@ const options: AdminJSOptions = {
     PartnerResource,
     ShareHolderProfitShareResource,
     InvoiceTypeResource,
-    InvoiceStatusResource,
     InvoiceResource,
-    InvoiceStatusHistoryResource,
     InvoiceItemResource,
     OrderStatusResource,
     PurchaseOrderResource,
@@ -103,7 +96,6 @@ const options: AdminJSOptions = {
     ExpenseTypeResource,
     ExpenseResource,
     ExpenseStatusResource,
-    ExpenseStatusHistoryResource,
     PaymentStatusResource,
     RelatedTypeResource,
     PaymentResource,

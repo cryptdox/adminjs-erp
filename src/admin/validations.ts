@@ -13,7 +13,7 @@ export const selectedValueSchema = Yup.object({
 
 export const expenseSchema = Yup.object({
   id: Yup.string().nullable(),
-  partner: selectedValueSchema.required('Partner is required'),
+  // partner: selectedValueSchema.required('Partner is required'),
   expenseType: selectedValueSchema.required('Expense type is required'),
   totalAmount: Yup.number().moreThan(0, 'Total amount must be > 0').required('Required'),
   paidAmount: Yup.number().min(0, 'Paid amount cannot be negative').required('Required'),

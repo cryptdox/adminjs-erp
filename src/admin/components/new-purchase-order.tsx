@@ -36,7 +36,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     globalDiscount,
     setGlobalDiscount,
     globalDiscountType,
-    fetchSuppliers,
+    fetchPartners,
     fetchProducts,
     fetchVariants,
     fetchWarehouses,
@@ -66,7 +66,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
 
   console.log("errors: ", errors)
 
-  const [suppliers, setSuppliers] = useState<{ id: string; name: string; }[]>([]);
+  const [partners, setPartners] = useState<{ id: string; name: string; type: string;}[]>([]);
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
   const [variantMap, setVariantMap] = useState<Record<string, Variant[]>>({});
   const [warehouses, setWarehouses] = useState<{ id: string; name: string }[]>([]);
@@ -75,14 +75,14 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
 
   useEffect(() => {
     const loadData = async () => {
-      const [suppliersData, productsData, warehousesData, expenseTypesData] =
+      const [partnersData, productsData, warehousesData, expenseTypesData] =
         await Promise.all([
-          fetchSuppliers(),
+          fetchPartners(),
           fetchProducts(),
           fetchWarehouses(),
           fetchExpenseTypes(),
         ]);
-      setSuppliers(suppliersData);
+      setPartners(partnersData);
       setProducts(productsData);
       setWarehouses(warehousesData);
       setExpenseTypes(expenseTypesData);
@@ -128,12 +128,15 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
           <Select
             value={selectedSupplier || ""}
             onChange={(selected) => setSelectedSupplier(selected || "")}
-            options={suppliers.map((sup) => ({
-              value: sup.id,
-              label: sup.name,
-            }))}
-            isDisabled={!suppliers.length}
-            isLoading={!suppliers.length}
+            options={partners
+              .filter((sup) => sup.type == 'SUPPLIER')
+              .map((sup) => ({
+                value: sup.id,
+                label: sup.name,
+              }))}
+
+            isDisabled={!partners.length}
+            isLoading={!partners.length}
             placeholder="Select Supplier"
             className="!w-full custom-partner-select !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
           />
@@ -431,7 +434,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                       onChange={(selected) =>
                         updateStockItemExpense(item.id, exp.id, { partner: selected || undefined })
                       }
-                      options={suppliers.map((p) => ({ value: p.id, label: p.name }))}
+                      options={partners.map((p) => ({ value: p.id, label: p.name }))}
                       placeholder="Partner"
                       className="!w-full"
                     />
@@ -627,13 +630,13 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
                 onChange={(selected) =>
                   updateExpenseItem(exp.id, { partner: selected || undefined })
                 }
-                options={suppliers.map((s) => ({
+                options={partners.map((s) => ({
                   value: s.id,
                   label: s.name,
                 }))}
                 placeholder="Select Partner"
-                isDisabled={!suppliers.length}
-                isLoading={!suppliers.length}
+                isDisabled={!partners.length}
+                isLoading={!partners.length}
                 className="!w-full custom-partner-select !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
               />
               {errors[`expenses[${index}].partner.value`] && (<p className="!pt-2 !text-red-600">{errors[`expenses[${index}].partner.value`]}</p>)}

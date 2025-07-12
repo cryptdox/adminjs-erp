@@ -1,0 +1,1 @@
+pg_dump -U postgres -h localhost -p 5432 -s skyzonebd > schema_dump.sql
