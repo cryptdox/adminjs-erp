@@ -552,7 +552,7 @@ useEffect(() => {
         totalRemainAmount,
         grandTotal,
       };
-      // await orderSchema.validate(payload, { abortEarly: false });
+      await orderSchema.validate(payload, { abortEarly: false });
       setShowModal(true);
     } catch (err) {
       if (err instanceof Yup.ValidationError) {

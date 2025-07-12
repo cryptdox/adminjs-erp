@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["interactiveTransactions"]
+  // previewFeatures = ["interactiveTransactions"]
   // output   = "../generated/prisma"
 }
 
@@ -513,6 +513,8 @@ model Invoice {
   totalAmount     Decimal        @default(0.0)
   paidAmount      Decimal        @default(0.0)
   note            String?
+  discount        Decimal?
+  discountType    DiscountType   @default(AMOUNT)
   isActive        Boolean        @default(true)
   isAllowed       Boolean        @default(true)
   isDeleted       Boolean        @default(false)

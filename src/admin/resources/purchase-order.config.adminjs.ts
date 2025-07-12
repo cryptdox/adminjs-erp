@@ -16,6 +16,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
       name: 'Order',
       icon: 'ShoppingCart',
     },
+    listProperties: ['orderNumber', 'partner', 'orderDate'],
     actions: {
       new: {
         component: AdminComponents.NewPurchaseOrder,
@@ -25,14 +26,16 @@ export const PurchaseOrderResource: ResourceWithOptions = {
         },
         handler: async (request: ActionRequest, response: any, context: ActionContext) => {
           try {
-            // const validatedData = await orderSchema.validate(request.payload, { abortEarly: false });
+            const validatedData = await orderSchema.validate(request.payload, { abortEarly: false });
             const userId = context?.currentAdmin?.user?.id;
-
-            console.log('userId: ', userId);
+            const now = new Date();
+            const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+            const timePart = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
+            const dateTimePart = `${datePart}${timePart}`;
+            const randomPart = () => Math.floor(1000 + Math.random() * 9000); // 4-digit random
 
             // TO DO DB OPERATION
             const payload = request.payload;
-            const date = new Date();
 
             await prisma.$transaction(async (tx) => {
               // 0. Get Supplier Details
@@ -42,29 +45,28 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                 },
               });
 
-              console.log('supplier', supplier);
-
               // 1. Create PurchaseOrder
               const purchaseOrder = await tx.purchaseOrder.create({
                 data: {
                   orderNumber: payload.orderNumber,
-                  orderDate: date,
+                  orderDate: now,
                   note: payload.note,
                   partner: {
                     connect: { id: payload.selectedSupplier?.value ?? '' },
                   },
                 },
               });
-              console.log('purchaseOrder', purchaseOrder);
 
               // 2. Create Invoice linked to PurchaseOrder
               const invoice = await tx.invoice.create({
                 data: {
                   invoiceNumber: `INV-${payload.orderNumber}`,
-                  invoiceDate: date,
+                  invoiceDate: now,
                   totalAmount: payload.grandTotal,
                   paidAmount: payload.totalPaidAmount,
                   note: payload.note,
+                  discountType: payload.globalDiscountType.value == 'percent' ? 'PERCENT' : 'AMOUNT',
+                  discount: payload.globalDiscount,
                   PurchaseOrder: {
                     connect: { id: purchaseOrder.id ?? '' },
                   },
@@ -79,19 +81,17 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                   },
                 },
               });
-              console.log('invoice', invoice);
 
               const lot = await tx.lot.create({
                 data: {
-                  lotNumber: `LOT-${date}`,
+                  lotNumber: `LOT-${dateTimePart}-${randomPart()}`,
                 },
               });
 
-              console.log('lot', lot);
               for (const item of payload.stockItems) {
                 const batch = await tx.batch.create({
                   data: {
-                    batchNumber: `BATCH-${date}`,
+                    batchNumber: `BATCH-${dateTimePart}-${randomPart()}`,
                     manufactureDate: item.manufactureDate ? new Date(item.manufactureDate) : undefined,
                     expiryDate: item.expiryDate ? new Date(item.expiryDate) : undefined,
                   },
@@ -142,10 +142,10 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                         connect: { id: item.warehouse.value },
                       },
                       batch: {
-                        connect: { id: item.batch.value },
+                        connect: { id: batch.id },
                       },
                       lot: {
-                        connect: { id: item.lot.value },
+                        connect: { id: lot.id },
                       },
                       CreatedBy: {
                         connect: { id: userId },
@@ -163,9 +163,9 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                     await tx.expense.create({
                       data: {
                         orderNumber: `EXP-ITEM-${item.id}`,
-                        partner: { connect: { id: e.partner.value } },
-                        expenseType: { connect: { id: e.expenseType.value } },
-                        orderDate: date,
+                        partner: { connect: { id: e.partner.value ?? '' } },
+                        expenseType: { connect: { id: e.expenseType.value ?? '' } },
+                        orderDate: now,
                         note: e.note,
                         InvoiceItem: { connect: { id: invoiceItem.id } },
                         ExpenseStatus: { connect: { name: expenseStatus[0].name ?? '' } },
@@ -178,7 +178,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                           orderNumber: `EXP-ITEM-${item.id}`,
                           partner: { connect: { id: e.partner.value } },
                           expenseType: { connect: { id: e.expenseType.value } },
-                          orderDate: date,
+                          orderDate: now,
                           note: e.note,
                           InvoiceItem: { connect: { id: invoiceItem.id } },
                           ExpenseStatus: {
@@ -196,9 +196,9 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                 await tx.expense.create({
                   data: {
                     orderNumber: `EXP-${purchaseOrder.orderNumber}`,
-                    partner: { connect: { id: exp.partner.value } },
-                    expenseType: { connect: { id: exp.expenseType.value } },
-                    orderDate: date,
+                    partner: { connect: { id: exp.partner.value ?? '' } },
+                    expenseType: { connect: { id: exp.expenseType.value ?? '' } },
+                    orderDate: now,
                     note: exp.note,
                     Invoice: { connect: { id: invoice.id } },
                     ExpenseStatus: {

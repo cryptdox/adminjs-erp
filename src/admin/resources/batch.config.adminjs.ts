@@ -1,15 +1,22 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
+import { ResourceWithOptions } from 'adminjs';
 
-export const BatchResource = {
+export const BatchResource: ResourceWithOptions = {
   resource: {
     model: getModelByName('Batch'),
     client: prisma,
   },
   options: {
-    navigation: { 
+    navigation: {
       name: 'Inventory',
-      icon: 'Archive' 
+      icon: 'Archive',
+    },
+    listProperties: ['batchNumber', 'manufactureDate', 'expiryDate'],
+    properties: {
+      batchNumber: {
+        isTitle: true,
+      },
     },
   },
 };
