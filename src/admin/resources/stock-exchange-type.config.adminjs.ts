@@ -1,9 +1,9 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
 
-export const StockStatusResource = {
+export const StockExchangeTypeResource = {
   resource: {
-    model: getModelByName('StockStatus'),
+    model: getModelByName('StockExchangeType'),
     client: prisma,
   },
   options: {

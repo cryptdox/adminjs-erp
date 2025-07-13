@@ -4,7 +4,7 @@ import { CreateCommonInput } from './dto/create-common.input.js';
 import { UpdateCommonInput } from './dto/update-common.input.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcrypt';
-import { expenseStatus, expenseType, invoiceType, paymentStatus, stockStatus, stockType } from '../utils/values.js';
+import { expenseStatus, expenseType, invoiceType, paymentStatus, stockExchangeStatus, stockExchangeType } from '../utils/values.js';
 
 @Injectable()
 export class CommonService {
@@ -69,7 +69,7 @@ export class CommonService {
         await tx.manufactureInput.deleteMany();
         await tx.manufactureOutput.deleteMany();
         await tx.manufacture.deleteMany();
-        await tx.stock.deleteMany();
+        await tx.stockExchange.deleteMany();
 
         await tx.variant.deleteMany();
         await tx.product.deleteMany();
@@ -77,8 +77,8 @@ export class CommonService {
         await tx.warehouse.deleteMany();
         await tx.lot.deleteMany();
         await tx.batch.deleteMany();
-        await tx.stockStatus.deleteMany();
-        await tx.stockType.deleteMany();
+        await tx.stockExchangeStatus.deleteMany();
+        await tx.stockExchangeType.deleteMany();
 
         await tx.purchaseOrder.deleteMany();
         await tx.saleOrder.deleteMany();
@@ -132,9 +132,9 @@ export class CommonService {
           'Variant',
           'Warehouse',
           'Stock',
-          'StockStatus',
-          'StockType',
-          'StockStatusHistory',
+          'stockExchangeStatus',
+          'StockExchangeType',
+          'stockExchangeStatusHistory',
           'Lot',
           'Batch',
           'Manufacture',
@@ -283,7 +283,7 @@ export class CommonService {
           Payment: ['read'],
           Partner: ['read', 'update'],
 
-          // Can view products & stock
+          // Can view products & stockExchange
           Product: ['read'],
           Variant: ['read'],
           Stock: ['read'],
@@ -412,13 +412,13 @@ export class CommonService {
           skipDuplicates: true,
         });
 
-        await tx.stockType.createMany({
-          data: stockType,
+        await tx.stockExchangeType.createMany({
+          data: stockExchangeType,
           skipDuplicates: true,
         });
 
-        await tx.stockStatus.createMany({
-          data: stockStatus,
+        await tx.stockExchangeStatus.createMany({
+          data: stockExchangeStatus,
           skipDuplicates: true,
         });
 

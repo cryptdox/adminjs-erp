@@ -11,9 +11,9 @@ import { VariantResource } from './resources/variant.config.adminjs.js';
 import { WarehouseResource } from './resources/warehouse.config.adminjs.js';
 import { BatchResource } from './resources/batch.config.adminjs.js';
 import { LotResource } from './resources/lot.config.adminjs.js';
-import { StockTypeResource } from './resources/stock-type.config.adminjs.js';
-import { StockStatusResource } from './resources/stock-status.config.adminjs.js';
-import { StockResource } from './resources/stock.config.adminjs.js';
+import { StockExchangeTypeResource } from './resources/stock-exchange-type.config.adminjs.js';
+import { stockExchangeStatusResource } from './resources/stock-exchange-status.config.adminjs.js';
+import { StockExchangeResource } from './resources/stock-exchange.config.adminjs.js';
 import { ManufactureResource } from './resources/manufacture.config.adminjs.js';
 import { ManufactureInputResource } from './resources/manufacture-input.config.adminjs.js';
 import { ManufactureOutputResource } from './resources/manufacture-output.config.adminjs.js';
@@ -73,9 +73,9 @@ const options: AdminJSOptions = {
     WarehouseResource,
     BatchResource,
     LotResource,
-    StockTypeResource,
-    StockStatusResource,
-    StockResource,
+    StockExchangeTypeResource,
+    stockExchangeStatusResource,
+    StockExchangeResource,
     ManufactureResource,
     ManufactureInputResource,
     ManufactureOutputResource,

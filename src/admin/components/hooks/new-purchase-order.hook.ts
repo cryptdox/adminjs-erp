@@ -100,14 +100,14 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
 
   const [errors, setErrors] = useState<ValidationErrors>({});
 
-useEffect(() => {
-  const now = new Date();
-  const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
-  const timePart = now.toTimeString().slice(0, 8).replace(/:/g, '');  // HHMMSS
-  const randomPart = Math.floor(1000 + Math.random() * 9000);         // 4-digit random number
-  const newOrderNum = `PO-${datePart}${timePart}-${randomPart}`;
-  setOrderNumber(newOrderNum);
-}, []);
+  useEffect(() => {
+    const now = new Date();
+    const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+    const timePart = '[000000]'; //now.toTimeString().slice(0, 8).replace(/:/g, '');  // HHMMSS
+    const randomPart = '[0000]'; //Math.floor(1000 + Math.random() * 9000);         // 4-digit random number
+    const newOrderNum = `PO-${datePart}${timePart}-${randomPart}`;
+    setOrderNumber(newOrderNum);
+  }, []);
 
   // Fetchers for data
   const fetchPartners = async (): Promise<Partner[]> => {
@@ -181,7 +181,7 @@ useEffect(() => {
     }));
   };
 
-  // Add a new stock item with default discount type = 'amount'
+  // Add a new stockExchange item with default discount type = 'amount'
   const addStockItem = () => {
     setStockItems((prev) => [
       ...prev,
@@ -210,7 +210,7 @@ useEffect(() => {
     ]);
   };
 
-  // Remove stock item by id
+  // Remove stockExchange item by id
   const removeStockItem = (id: string) => {
     setStockItems((prev) => prev.filter((item) => item.id !== id));
   };
@@ -269,7 +269,7 @@ useEffect(() => {
     );
   };
 
-  // Update discount type for stock item
+  // Update discount type for stockExchange item
   const updateDiscountType = (
     id: string,
     data: { discountType: { value: 'amount'; label: '$ - Amount' } | { value: 'percent'; label: '% - Percent' } }
@@ -277,7 +277,7 @@ useEffect(() => {
     updateStockItem(id, data);
   };
 
-  // Update discount type for stock item
+  // Update discount type for stockExchange item
   const updateGlobalDiscountType = (data: SelectedValue = { value: 'amount', label: '$ - Amount' }) => {
     setGlobalDiscountType(data);
     setGlobalDiscount(0);
@@ -316,7 +316,7 @@ useEffect(() => {
               expenses: [
                 ...(item.expenses || []),
                 {
-                  id: `stock-expense-${Date.now()}`,
+                  id: `stockExchange-expense-${Date.now()}`,
                   partner: undefined,
                   expenseType: undefined,
                   totalAmount: 0,
@@ -438,7 +438,7 @@ useEffect(() => {
     );
   };
 
-  // Calculate expense per unit for a stock item (unitPrice + expense per quantity)
+  // Calculate expense per unit for a stockExchange item (unitPrice + expense per quantity)
   const calculateExpensePerUnit = (item: StockItemInput): number => {
     // const globalDiscountAmount = globalDiscountType.value === 'percent' ? (totalStockAmount * globalDiscount) / 100 : item.discount;
     const globalExpense = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
@@ -467,10 +467,10 @@ useEffect(() => {
 
   // ========== Calculations ==========
 
-  // Sum of (unitPrice * quantity) for all stock items (gross)
+  // Sum of (unitPrice * quantity) for all stockExchange items (gross)
   const totalStockAmount = stockItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
 
-  // Sum of all discounts on stock items (calculated based on type)
+  // Sum of all discounts on stockExchange items (calculated based on type)
   const totalItemDiscount = stockItems.reduce((sum, i) => {
     const gross = i.unitPrice * i.quantity;
     const discount = i.discountType.value == 'percent' ? (gross * i.discount) / 100 : i.discount;
@@ -480,7 +480,7 @@ useEffect(() => {
   // Sum of totalAmount of all expenses
   const globalExpenseAmount = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
 
-  // Sum of paid amounts on stock items
+  // Sum of paid amounts on stockExchange items
   const totalStockPaid = stockItems.reduce((sum, i) => sum + i.paid, 0);
 
   // Sum of paid amounts on expenses
@@ -492,7 +492,7 @@ useEffect(() => {
       ? ((totalStockAmount - totalItemDiscount) * globalDiscount) / 100
       : globalDiscount;
 
-  // // Grand total = stock total - item discounts - global discount + expenses
+  // // Grand total = stockExchange total - item discounts - global discount + expenses
   // const grandTotal = totalStockAmount - totalItemDiscount - globalDiscountAmount + globalExpenseAmount;
   const totalStockItemExpenses = stockItems.reduce(
     (sum, i) => sum + (i.expenses?.reduce((s, e) => s + e.totalAmount, 0) || 0),
@@ -511,7 +511,7 @@ useEffect(() => {
     return totalPaid + itemExpensePaid;
   }, 0);
 
-  // Total paid (stock + expense)
+  // Total paid (stockExchange + expense)
   const totalPaidAmount = totalStockPaid + totalExpensePaid + getTotalStockItemExpensePaid;
 
   // Total remain amount = grand total - total paid amount

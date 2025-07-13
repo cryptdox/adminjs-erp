@@ -60,7 +60,7 @@ export const orderSchema = Yup.object({
   orderNumber: Yup.string().required('Order number is required'),
   selectedSupplier: selectedValueSchema.required('Supplier is required'),
   note: Yup.string().nullable(),
-  stockItems: Yup.array().of(stockItemSchema).min(1, 'At least one stock item is required').required(),
+  stockItems: Yup.array().of(stockItemSchema).min(1, 'At least one stockExchange item is required').required(),
   expenses: Yup.array().of(expenseSchema),
   globalDiscount: Yup.number().min(0, 'Global discount cannot be negative').required('Required'),
   globalDiscountType: selectedValueSchema.required('Discount type is required'),

@@ -36,7 +36,7 @@ model User {
   Payment                    Payment[]
   AuditLog                   AuditLog[]
   Partner                    Partner?                     @relation
-  Stock                      Stock[]
+  StockExchange              StockExchange[]
   Expense                    Expense[]
   Invoice                    Invoice[]
 
@@ -166,72 +166,72 @@ model Product {
 }
 
 model Variant {
-  id         String    @id @default(uuid())
-  name       String?
-  productId  String
-  product    Product   @relation(fields: [productId], references: [id])
-  attributes Json // e.g., { size: "M", color: "Red" }
-  isActive   Boolean   @default(true)
-  isAllowed  Boolean   @default(true)
-  isDeleted  Boolean   @default(false)
-  deletedAt  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  Stock      Stock[]
+  id            String          @id @default(uuid())
+  name          String?
+  productId     String
+  product       Product         @relation(fields: [productId], references: [id])
+  attributes    Json // e.g., { size: "M", color: "Red" }
+  isActive      Boolean         @default(true)
+  isAllowed     Boolean         @default(true)
+  isDeleted     Boolean         @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  StockExchange StockExchange[]
 }
 
 model Warehouse {
-  id        String    @id @default(uuid())
-  name      String
-  location  String? // Address or description
-  contact   String? // Phone or email
-  capacity  Int? // Optional max capacity (units)
-  isActive  Boolean   @default(true)
-  isAllowed Boolean   @default(true)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Stock     Stock[]
+  id            String          @id @default(uuid())
+  name          String
+  location      String? // Address or description
+  contact       String? // Phone or email
+  capacity      Int? // Optional max capacity (units)
+  isActive      Boolean         @default(true)
+  isAllowed     Boolean         @default(true)
+  isDeleted     Boolean         @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  StockExchange StockExchange[]
 }
 
 model Batch {
-  id              String    @id @default(uuid())
+  id              String          @id @default(uuid())
   batchNumber     String // Unique batch or lot number
   manufactureDate DateTime?
   expiryDate      DateTime?
-  isActive        Boolean   @default(true)
-  isAllowed       Boolean   @default(true)
-  isDeleted       Boolean   @default(false)
+  isActive        Boolean         @default(true)
+  isAllowed       Boolean         @default(true)
+  isDeleted       Boolean         @default(false)
   deletedAt       DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  Stock           Stock[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  StockExchange   StockExchange[]
 }
 
 model Lot {
-  id        String    @id @default(uuid())
-  lotNumber String // Unique lot identifier
-  isActive  Boolean   @default(true)
-  isAllowed Boolean   @default(true)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Stock     Stock[]
+  id            String          @id @default(uuid())
+  lotNumber     String // Unique lot identifier
+  isActive      Boolean         @default(true)
+  isAllowed     Boolean         @default(true)
+  isDeleted     Boolean         @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  StockExchange StockExchange[]
 }
 
-// enum StockType {
-//   PURCHASE_IN // Stock added via purchase order
-//   RETURN_IN // Stock returned from customer
-//   ADJUSTMENT_IN // Stock added by manual adjustment
-//   SALE_OUT // Stock sold to customer
-//   DAMAGE_OUT // Stock lost/damaged
-//   TRANSFER_IN // Stock received from another warehouse
-//   TRANSFER_OUT // Stock sent to another warehouse
-//   ADJUSTMENT_OUT // Stock reduced by manual adjustment
+// enum StockExchangeType {
+//   PURCHASE_IN // StockExchange added via purchase order
+//   RETURN_IN // StockExchange returned from customer
+//   ADJUSTMENT_IN // StockExchange added by manual adjustment
+//   SALE_OUT // StockExchange sold to customer
+//   DAMAGE_OUT // StockExchange lost/damaged
+//   TRANSFER_IN // StockExchange received from another warehouse
+//   TRANSFER_OUT // StockExchange sent to another warehouse
+//   ADJUSTMENT_OUT // StockExchange reduced by manual adjustment
 // }
-model StockType {
+model StockExchangeType {
   id          String    @id @default(uuid())
   code        String    @unique // e.g., "PURCHASE_IN", "SALE_OUT"
   name        String // e.g., "Purchase In", "Sale Out"
@@ -243,52 +243,52 @@ model StockType {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  stocks Stock[]
+  stocks StockExchange[]
 }
 
-model StockStatus {
-  id          String    @id @default(uuid())
-  name        String    @unique // e.g., "in_stock", "reserved", "damaged", "returned"
-  displayName String // e.g., "In Stock", "Damaged"
+model StockExchangeStatus {
+  id          String          @id @default(uuid())
+  name        String          @unique // e.g., "in_stock", "reserved", "damaged", "returned"
+  displayName String // e.g., "In StockExchange", "Damaged"
   description String?
-  isActive    Boolean   @default(true)
-  isAllowed   Boolean   @default(true)
-  isDeleted   Boolean   @default(false)
+  isActive    Boolean         @default(true)
+  isAllowed   Boolean         @default(true)
+  isDeleted   Boolean         @default(false)
   deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  stocks      Stock[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  stocks      StockExchange[]
 }
 
-model Stock {
-  id                String              @id @default(uuid())
-  productVariantId  String
-  productVariant    Variant             @relation(fields: [productVariantId], references: [id])
-  warehouseId       String
-  warehouse         Warehouse           @relation(fields: [warehouseId], references: [id])
-  lotId             String? // Optional lot tracking
-  lot               Lot?                @relation(fields: [lotId], references: [id])
-  batchId           String? // Optional batch tracking
-  batch             Batch?              @relation(fields: [batchId], references: [id])
-  note              String?
-  quantity          Int                 @default(0)
-  isActive          Boolean             @default(true)
-  isAllowed         Boolean             @default(true)
-  isDeleted         Boolean             @default(false)
-  deletedAt         DateTime?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  ManufactureInput  ManufactureInput[]
-  ManufactureOutput ManufactureOutput[]
-  InvoiceItem       InvoiceItem[]
-  CreatedBy         User?               @relation(fields: [createdById], references: [id])
-  createdById       String?
-  StockStatus       StockStatus?        @relation(fields: [stockStatusId], references: [id])
-  stockStatusId     String?
-  StockType         StockType?          @relation(fields: [stockTypeId], references: [id])
-  stockTypeId       String?
+model StockExchange {
+  id                    String               @id @default(uuid())
+  productVariantId      String
+  productVariant        Variant              @relation(fields: [productVariantId], references: [id])
+  warehouseId           String
+  warehouse             Warehouse            @relation(fields: [warehouseId], references: [id])
+  lotId                 String? // Optional lot tracking
+  lot                   Lot?                 @relation(fields: [lotId], references: [id])
+  batchId               String? // Optional batch tracking
+  batch                 Batch?               @relation(fields: [batchId], references: [id])
+  note                  String?
+  quantity              Int                  @default(0)
+  isActive              Boolean              @default(true)
+  isAllowed             Boolean              @default(true)
+  isDeleted             Boolean              @default(false)
+  deletedAt             DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  ManufactureInput      ManufactureInput[]
+  ManufactureOutput     ManufactureOutput[]
+  InvoiceItem           InvoiceItem[]
+  CreatedBy             User?                @relation(fields: [createdById], references: [id])
+  createdById           String?
+  StockExchangeStatus   StockExchangeStatus? @relation(fields: [stockExchangeStatusId], references: [id])
+  stockExchangeStatusId String?
+  StockExchangeType     StockExchangeType?   @relation(fields: [stockExchangeTypeId], references: [id])
+  stockExchangeTypeId   String?
 
-  @@index([stockTypeId, warehouseId])
+  @@index([stockExchangeTypeId, warehouseId])
 }
 
 // MANUFACTURE MANAGEMENT
@@ -311,31 +311,31 @@ model Manufacture {
 }
 
 model ManufactureInput {
-  id            String      @id @default(uuid())
+  id            String        @id @default(uuid())
   manufactureId String
-  manufacture   Manufacture @relation(fields: [manufactureId], references: [id])
+  manufacture   Manufacture   @relation(fields: [manufactureId], references: [id])
   stockId       String
-  stock         Stock       @relation(fields: [stockId], references: [id])
-  isActive      Boolean     @default(false)
-  isAllowed     Boolean     @default(false)
-  isDeleted     Boolean     @default(false)
+  stockExchange StockExchange @relation(fields: [stockId], references: [id])
+  isActive      Boolean       @default(false)
+  isAllowed     Boolean       @default(false)
+  isDeleted     Boolean       @default(false)
   deletedAt     DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model ManufactureOutput {
-  id            String      @id @default(uuid())
+  id            String        @id @default(uuid())
   manufactureId String
-  manufacture   Manufacture @relation(fields: [manufactureId], references: [id])
+  manufacture   Manufacture   @relation(fields: [manufactureId], references: [id])
   stockId       String
-  stock         Stock       @relation(fields: [stockId], references: [id])
-  isActive      Boolean     @default(false)
-  isAllowed     Boolean     @default(false)
-  isDeleted     Boolean     @default(false)
+  stockExchange StockExchange @relation(fields: [stockId], references: [id])
+  isActive      Boolean       @default(false)
+  isAllowed     Boolean       @default(false)
+  isDeleted     Boolean       @default(false)
   deletedAt     DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 // Accounts
@@ -538,24 +538,23 @@ enum DiscountType {
 }
 
 model InvoiceItem {
-  id           String       @id @default(uuid())
-  name         String?
-  invoiceId    String
-  invoice      Invoice      @relation(fields: [invoiceId], references: [id])
-  stockId      String // Optional: only for SALES and PURCHASE
-  stock        Stock?       @relation(fields: [stockId], references: [id])
-  unitPrice    Decimal?
-  // totalPrice   Decimal?
-  discount     Decimal?
-  discountType DiscountType @default(AMOUNT)
-  note         String?
-  isActive     Boolean      @default(true)
-  isAllowed    Boolean      @default(true)
-  isDeleted    Boolean      @default(false)
-  deletedAt    DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  Expense      Expense[]
+  id            String         @id @default(uuid())
+  name          String?
+  invoiceId     String
+  invoice       Invoice        @relation(fields: [invoiceId], references: [id])
+  stockId       String // Optional: only for SALES and PURCHASE
+  stockExchange StockExchange? @relation(fields: [stockId], references: [id])
+  unitPrice     Decimal?
+  discount      Decimal?
+  discountType  DiscountType   @default(AMOUNT)
+  note          String?
+  isActive      Boolean        @default(true)
+  isAllowed     Boolean        @default(true)
+  isDeleted     Boolean        @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  Expense       Expense[]
 
   @@index([invoiceId])
 }

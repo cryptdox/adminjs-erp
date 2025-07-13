@@ -66,7 +66,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
 
   console.log("errors: ", errors)
 
-  const [partners, setPartners] = useState<{ id: string; name: string; type: string;}[]>([]);
+  const [partners, setPartners] = useState<{ id: string; name: string; type: string; }[]>([]);
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
   const [variantMap, setVariantMap] = useState<Record<string, Variant[]>>({});
   const [warehouses, setWarehouses] = useState<{ id: string; name: string }[]>([]);
@@ -612,6 +612,36 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
       </Button>
 
 
+      {/* Global Discount */}
+      <div className="!border !border-gray-300 !rounded-md !p-4 !mb-6 !bg-gray-50 !w-full md:!w-1/2 md:!ml-auto">
+        <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Global Stock Discount</Label>
+        <div className="!grid !grid-cols-2 !gap-4 !mt-2">
+          <Input
+            type="number"
+            value={globalDiscount}
+            min={0}
+            onChange={(e) => {
+              const inputValue = Number(e.target.value);
+              const cappedValue = Math.min(inputValue, 100);
+              setGlobalDiscount(Number(globalDiscountType.value == 'percent' ? cappedValue : e.target.value))
+            }}
+            className="!w-full !border !border-gray-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
+            placeholder="Discount Value"
+          />
+          {errors[`globalDiscount`] && (<p className="!pt-2 !text-red-600">{errors[`globalDiscount`]}</p>)}
+          <Select
+            value={globalDiscountType}
+            onChange={(selected) => updateGlobalDiscountType(selected)}
+            options={[
+              { value: "percent", label: "% - Percent" },
+              { value: "amount", label: "$ - Amount" },
+            ]}
+            className="!w-full !border !border-gray-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
+          />
+          {errors[`globalDiscountType`] && (<p className="!pt-2 !text-red-600">{errors[`globalDiscountType`]}</p>)}
+        </div>
+      </div>
+
       {/* Expenses Section */}
       <h3 className="!text-xl !font-semibold !mb-4 !text-indigo-500 !pb-2">
         Expenses
@@ -725,36 +755,6 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
       >
         + Add Expense
       </Button>
-
-      {/* Global Discount */}
-      <div className="!border !border-gray-300 !rounded-md !p-4 !mb-6 !bg-gray-50 !w-full md:!w-1/2 md:!ml-auto">
-        <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Global Discount</Label>
-        <div className="!grid !grid-cols-2 !gap-4 !mt-2">
-          <Input
-            type="number"
-            value={globalDiscount}
-            min={0}
-            onChange={(e) => {
-              const inputValue = Number(e.target.value);
-              const cappedValue = Math.min(inputValue, 100);
-              setGlobalDiscount(Number(globalDiscountType.value == 'percent' ? cappedValue : e.target.value))
-            }}
-            className="!w-full !border !border-gray-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
-            placeholder="Discount Value"
-          />
-          {errors[`globalDiscount`] && (<p className="!pt-2 !text-red-600">{errors[`globalDiscount`]}</p>)}
-          <Select
-            value={globalDiscountType}
-            onChange={(selected) => updateGlobalDiscountType(selected)}
-            options={[
-              { value: "percent", label: "% - Percent" },
-              { value: "amount", label: "$ - Amount" },
-            ]}
-            className="!w-full !border !border-gray-300 !rounded-md !shadow-sm focus:!ring-2 focus:!ring-indigo-500 !transition"
-          />
-          {errors[`globalDiscountType`] && (<p className="!pt-2 !text-red-600">{errors[`globalDiscountType`]}</p>)}
-        </div>
-      </div>
 
       {/* Totals Summary */}
       <div className="!w-full lg:!w-3/4 md:!ml-auto !grid !grid-rows-7 !grid-cols-3 !gap-y-4 !border !border-gray-300 !rounded-md !p-4 !my-4 !bg-gray-50">

@@ -4,7 +4,7 @@ import { ActionContext, ActionRequest, ResourceWithOptions } from 'adminjs';
 import AdminComponents from '../components/admin.components.js';
 import { orderSchema } from '../validations.js';
 import * as Yup from 'yup';
-import { expenseStatus, invoiceType, stockStatus } from '../../utils/values.js';
+import { expenseStatus, invoiceType, stockExchangeStatus } from '../../utils/values.js';
 
 export const PurchaseOrderResource: ResourceWithOptions = {
   resource: {
@@ -48,7 +48,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
               // 1. Create PurchaseOrder
               const purchaseOrder = await tx.purchaseOrder.create({
                 data: {
-                  orderNumber: payload.orderNumber,
+                  orderNumber: `PO-${dateTimePart}`,
                   orderDate: now,
                   note: payload.note,
                   partner: {
@@ -60,7 +60,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
               // 2. Create Invoice linked to PurchaseOrder
               const invoice = await tx.invoice.create({
                 data: {
-                  invoiceNumber: `INV-${payload.orderNumber}`,
+                  invoiceNumber: `INV-${dateTimePart}`,
                   invoiceDate: now,
                   totalAmount: payload.grandTotal,
                   paidAmount: payload.totalPaidAmount,
@@ -84,7 +84,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
 
               const lot = await tx.lot.create({
                 data: {
-                  lotNumber: `LOT-${dateTimePart}-${randomPart()}`,
+                  lotNumber: `LOT-${dateTimePart}`,
                 },
               });
 
@@ -97,7 +97,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                   },
                 });
 
-                const stock = await tx.stock.create({
+                const stockExchange = await tx.stockExchange.create({
                   data: {
                     productVariant: {
                       connect: { id: item.variant.value },
@@ -116,8 +116,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                     },
                     quantity: item.quantity,
                     note: `Purchase order: ${purchaseOrder.orderNumber}`,
-                    StockStatus: {
-                      connect: { name: stockStatus[4].name ?? '' },
+                    StockExchangeStatus: {
+                      connect: { name: stockExchangeStatus[4].name ?? '' },
                     },
                   },
                 });
@@ -125,7 +125,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                 const invoiceItem = await tx.invoiceItem.create({
                   data: {
                     invoiceId: invoice.id,
-                    stockId: stock.id,
+                    stockId: stockExchange.id,
                     unitPrice: item.unitPrice,
                     discountType: item.discountType.value == 'percent' ? 'PERCENT' : 'AMOUNT',
                     discount: item.discount,
@@ -133,7 +133,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                 });
 
                 item.receivedQuantity > 0 &&
-                  (await tx.stock.create({
+                  (await tx.stockExchange.create({
                     data: {
                       productVariant: {
                         connect: { id: item.variant.value },
@@ -152,8 +152,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                       },
                       quantity: item.receivedQuantity,
                       note: `Purchase order: ${purchaseOrder.orderNumber}`,
-                      StockStatus: {
-                        connect: { name: stockStatus[0].name ?? '' },
+                      StockExchangeStatus: {
+                        connect: { name: stockExchangeStatus[0].name ?? '' },
                       },
                     },
                   }));
@@ -162,7 +162,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                   for (const e of item.expenses) {
                     await tx.expense.create({
                       data: {
-                        orderNumber: `EXP-ITEM-${item.id}`,
+                        orderNumber: purchaseOrder.orderNumber,
                         partner: { connect: { id: e.partner.value ?? '' } },
                         expenseType: { connect: { id: e.expenseType.value ?? '' } },
                         orderDate: now,
@@ -175,7 +175,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                     e.paidAmount &&
                       (await tx.expense.create({
                         data: {
-                          orderNumber: `EXP-ITEM-${item.id}`,
+                          orderNumber: purchaseOrder.orderNumber,
                           partner: { connect: { id: e.partner.value } },
                           expenseType: { connect: { id: e.expenseType.value } },
                           orderDate: now,
@@ -195,7 +195,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
               for (const exp of payload.expenses) {
                 await tx.expense.create({
                   data: {
-                    orderNumber: `EXP-${purchaseOrder.orderNumber}`,
+                    orderNumber: purchaseOrder.orderNumber,
                     partner: { connect: { id: exp.partner.value ?? '' } },
                     expenseType: { connect: { id: exp.expenseType.value ?? '' } },
                     orderDate: now,
@@ -212,8 +212,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
             });
 
             return {
-              // record: validatedData,
-              record: request.payload,
+              record: validatedData,
+              // record: request.payload,
               notice: {
                 message: 'New purchase order done!',
                 type: 'success',

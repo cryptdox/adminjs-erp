@@ -1,20 +1,20 @@
 export const invoiceType = [
-  { name: 'STOCK_SALES', description: 'Sales of stock items' },
-  { name: 'STOCK_PURCHASE', description: 'Purchase of stock items' },
-  { name: 'OTHER_SALES', description: 'Service or non-stock sales' },
-  { name: 'OTHER_PURCHASE', description: 'Service or non-stock purchases' },
+  { name: 'STOCK_SALES', description: 'Sales of stockExchange items' },
+  { name: 'STOCK_PURCHASE', description: 'Purchase of stockExchange items' },
+  { name: 'OTHER_SALES', description: 'Service or non-stockExchange sales' },
+  { name: 'OTHER_PURCHASE', description: 'Service or non-stockExchange purchases' },
   { name: 'EXPENSE', description: 'Recorded expense invoices' },
 ];
 
-export const stockType = [
+export const stockExchangeType = [
   { code: 'PURCHASE_IN', name: 'Purchase In', description: 'Stock from purchase orders' },
   { code: 'SALE_OUT', name: 'Sale Out', description: 'Stock sold to customer' },
   { code: 'DAMAGE_OUT', name: 'Damage Out', description: 'Stock damaged or lost' },
-  { code: 'ADJUSTMENT_IN', name: 'Adjustment In', description: 'Manual stock increase' },
-  { code: 'ADJUSTMENT_OUT', name: 'Adjustment Out', description: 'Manual stock decrease' },
+  { code: 'ADJUSTMENT_IN', name: 'Adjustment In', description: 'Manual stockExchange increase' },
+  { code: 'ADJUSTMENT_OUT', name: 'Adjustment Out', description: 'Manual stockExchange decrease' },
 ];
 
-export const stockStatus = [
+export const stockExchangeStatus = [
   { name: 'STOCK_IN', displayName: 'Stock IN' },
   { name: 'STOCK_OUT', displayName: 'Stock Out' },
   { name: 'RESERVED', displayName: 'Reserved' },
@@ -29,7 +29,7 @@ export const stockStatus = [
 ];
 
 export const expenseType = [
-  { name: 'PURCHASE', displayName: 'Purchase Order', description: 'Cost related to stock purchase' },
+  { name: 'PURCHASE', displayName: 'Purchase Order', description: 'Cost related to stockExchange purchase' },
   { name: 'SALE', displayName: 'Sales Related', description: 'Sales operational expense' },
   { name: 'RETURN', displayName: 'Returned Goods', description: 'Expense from customer returns' },
   { name: 'OTHER', displayName: 'Other Expense', description: 'Miscellaneous operational expense' },

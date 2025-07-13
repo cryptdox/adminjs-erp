@@ -779,18 +779,18 @@ CREATE TABLE public."Stock" (
     "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp(3) without time zone NOT NULL,
     "createdById" text,
-    "stockStatusId" text,
-    "stockTypeId" text
+    "stockExchangeStatusId" text,
+    "stockExchangeTypeId" text
 );
 
 
 ALTER TABLE public."Stock" OWNER TO postgres;
 
 --
--- Name: StockStatus; Type: TABLE; Schema: public; Owner: postgres
+-- Name: stockExchangeStatus; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public."StockStatus" (
+CREATE TABLE public."stockExchangeStatus" (
     id text NOT NULL,
     name text NOT NULL,
     "displayName" text NOT NULL,
@@ -804,13 +804,13 @@ CREATE TABLE public."StockStatus" (
 );
 
 
-ALTER TABLE public."StockStatus" OWNER TO postgres;
+ALTER TABLE public."stockExchangeStatus" OWNER TO postgres;
 
 --
--- Name: StockType; Type: TABLE; Schema: public; Owner: postgres
+-- Name: StockExchangeType; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public."StockType" (
+CREATE TABLE public."StockExchangeType" (
     id text NOT NULL,
     code text NOT NULL,
     name text NOT NULL,
@@ -824,7 +824,7 @@ CREATE TABLE public."StockType" (
 );
 
 
-ALTER TABLE public."StockType" OWNER TO postgres;
+ALTER TABLE public."StockExchangeType" OWNER TO postgres;
 
 --
 -- Name: Transaction; Type: TABLE; Schema: public; Owner: postgres
@@ -1221,19 +1221,19 @@ ALTER TABLE ONLY public."ShareHolderProfitShare"
 
 
 --
--- Name: StockStatus StockStatus_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: stockExchangeStatus stockExchangeStatus_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public."StockStatus"
-    ADD CONSTRAINT "StockStatus_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY public."stockExchangeStatus"
+    ADD CONSTRAINT "stockExchangeStatus_pkey" PRIMARY KEY (id);
 
 
 --
--- Name: StockType StockType_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: StockExchangeType StockExchangeType_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public."StockType"
-    ADD CONSTRAINT "StockType_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY public."StockExchangeType"
+    ADD CONSTRAINT "StockExchangeType_pkey" PRIMARY KEY (id);
 
 
 --
@@ -1440,24 +1440,24 @@ CREATE UNIQUE INDEX "ShareHolderProfitShare_partnerId_key" ON public."ShareHolde
 
 
 --
--- Name: StockStatus_name_key; Type: INDEX; Schema: public; Owner: postgres
+-- Name: stockExchangeStatus_name_key; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE UNIQUE INDEX "StockStatus_name_key" ON public."StockStatus" USING btree (name);
-
-
---
--- Name: StockType_code_key; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE UNIQUE INDEX "StockType_code_key" ON public."StockType" USING btree (code);
+CREATE UNIQUE INDEX "stockExchangeStatus_name_key" ON public."stockExchangeStatus" USING btree (name);
 
 
 --
--- Name: Stock_stockTypeId_warehouseId_idx; Type: INDEX; Schema: public; Owner: postgres
+-- Name: StockExchangeType_code_key; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX "Stock_stockTypeId_warehouseId_idx" ON public."Stock" USING btree ("stockTypeId", "warehouseId");
+CREATE UNIQUE INDEX "StockExchangeType_code_key" ON public."StockExchangeType" USING btree (code);
+
+
+--
+-- Name: Stock_stockExchangeTypeId_warehouseId_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "Stock_stockExchangeTypeId_warehouseId_idx" ON public."Stock" USING btree ("stockExchangeTypeId", "warehouseId");
 
 
 --
@@ -1857,19 +1857,19 @@ ALTER TABLE ONLY public."Stock"
 
 
 --
--- Name: Stock Stock_stockStatusId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: Stock Stock_stockExchangeStatusId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public."Stock"
-    ADD CONSTRAINT "Stock_stockStatusId_fkey" FOREIGN KEY ("stockStatusId") REFERENCES public."StockStatus"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+    ADD CONSTRAINT "Stock_stockExchangeStatusId_fkey" FOREIGN KEY ("stockExchangeStatusId") REFERENCES public."stockExchangeStatus"(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --
--- Name: Stock Stock_stockTypeId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: Stock Stock_stockExchangeTypeId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public."Stock"
-    ADD CONSTRAINT "Stock_stockTypeId_fkey" FOREIGN KEY ("stockTypeId") REFERENCES public."StockType"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+    ADD CONSTRAINT "Stock_stockExchangeTypeId_fkey" FOREIGN KEY ("stockExchangeTypeId") REFERENCES public."StockExchangeType"(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --
