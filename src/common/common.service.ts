@@ -4,7 +4,20 @@ import { CreateCommonInput } from './dto/create-common.input.js';
 import { UpdateCommonInput } from './dto/update-common.input.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcrypt';
-import { expenseStatus, expenseType, invoiceType, paymentStatus, stockExchangeStatus, stockExchangeType } from '../utils/values.js';
+import {
+  accounts,
+  accountTypeData,
+  actions,
+  expenseStatus,
+  expenseType,
+  invoiceType,
+  managerAllowedActions,
+  paymentStatus,
+  resources,
+  stockExchangeStatus,
+  stockExchangeType,
+  userAllowedActions,
+} from '../utils/values.js';
 
 @Injectable()
 export class CommonService {
@@ -122,55 +135,6 @@ export class CommonService {
 
         // 2. Insert permissions
         // Define your list of all relevant table names as resources
-        const resources = [
-          'User',
-          'Role',
-          'Permission',
-          'RolePermission',
-          'Product',
-          'ProductCategory',
-          'Variant',
-          'Warehouse',
-          'Stock',
-          'stockExchangeStatus',
-          'StockExchangeType',
-          'stockExchangeStatusHistory',
-          'Lot',
-          'Batch',
-          'Manufacture',
-          'ManufactureInput',
-          'ManufactureOutput',
-          'AccountType',
-          'Account',
-          'Transaction',
-          'LedgerEntry',
-          'Partner',
-          'ShareHolderProfitShare',
-          'InvoiceType',
-          'InvoiceStatus',
-          'Invoice',
-          'InvoiceItem',
-          'InvoiceStatusHistory',
-          'OrderStatus',
-          'PurchaseOrder',
-          'PurchaseOrderStatusHistory',
-          'SaleOrder',
-          'SaleOrderStatusHistory',
-          'ExpenseType',
-          'Expense',
-          'ExpenseStatus',
-          'ExpenseStatusHistory',
-          'PaymentStatus',
-          'RelatedType',
-          'Payment',
-          'AuditLog',
-          'Setting',
-          'SettingType',
-          'SettingOption',
-        ];
-
-        // Standard actions
-        const actions = ['create', 'read', 'update', 'delete'];
 
         // Generate all combinations
         const permissionsData = [];
@@ -218,34 +182,6 @@ export class CommonService {
           }
         }
 
-        const managerAllowedActions: Record<string, string[]> = {
-          // Full CRUD for operational entries
-          Invoice: ['create', 'read', 'update'],
-          InvoiceItem: ['create', 'read', 'update'],
-          SaleOrder: ['create', 'read', 'update'],
-          PurchaseOrder: ['create', 'read', 'update'],
-          Expense: ['create', 'read', 'update'],
-          Payment: ['create', 'read', 'update'],
-
-          // Read/Update for master data
-          Product: ['read', 'update'],
-          ProductCategory: ['read'],
-          Variant: ['read'],
-          Stock: ['read'],
-          Warehouse: ['read'],
-          Partner: ['read', 'update'],
-
-          // Read-only for config & sensitive tables
-          User: ['read'],
-          Role: ['read'],
-          Permission: ['read'],
-          Setting: ['read'],
-          Account: ['read'],
-          LedgerEntry: ['read'],
-          Transaction: ['read'],
-          Manufacture: ['read'],
-        };
-
         const managerRole = await tx.role.findFirst({
           where: { name: 'MANAGER' },
         });
@@ -272,30 +208,6 @@ export class CommonService {
             }
           }
         }
-
-        const userAllowedActions: Record<string, string[]> = {
-          // Can view personal-related records
-          Invoice: ['read'],
-          InvoiceItem: ['read'],
-          SaleOrder: ['read', 'create'],
-          PurchaseOrder: ['read'],
-          Expense: ['read', 'create'],
-          Payment: ['read'],
-          Partner: ['read', 'update'],
-
-          // Can view products & stockExchange
-          Product: ['read'],
-          Variant: ['read'],
-          Stock: ['read'],
-          Warehouse: ['read'],
-
-          // Can view own profile
-          User: ['read'],
-
-          // Read-only on basic lookup/config
-          Setting: ['read'],
-          Account: ['read'],
-        };
 
         const userRole = await tx.role.findFirst({
           where: { name: 'USER' },
@@ -394,10 +306,12 @@ export class CommonService {
         await tx.variant.createMany({
           data: [
             {
+              name: 'BLACK-128',
               productId: product.id,
               attributes: { name: 'BLACK-128', color: 'Black', storage: '128GB' },
             },
             {
+              name: 'SILVER-256',
               productId: product.id,
               attributes: { name: 'SILVER-256', color: 'Silver', storage: '256GB' },
             },
@@ -433,57 +347,28 @@ export class CommonService {
         //   ],
         //   skipDuplicates: true,
         // });
+
         // 1. Create parent account types
-        const parents = await Promise.all([
-          tx.accountType.create({
+        const parents = await Promise.all(accountTypeData.map((data) => tx.accountType.create({ data })));
+
+        // 2. Create Default Accounts
+        // ✅ Map the name to ID for later use
+        const accountTypeMap: Record<string, string> = {};
+
+        for (const parent of parents) {
+          accountTypeMap[parent.name] = parent.id;
+        }
+
+        for (const account of accounts) {
+          await tx.account.create({
             data: {
-              name: 'ASSET',
-              description: 'Represents company-owned resources such as cash, inventory, and property',
+              name: account.name,
+              typeId: accountTypeMap[account.type],
+              isOrganizationAccount: account.isOrganizationAccount,
+              isDefault: true,
             },
-          }),
-          tx.accountType.create({
-            data: {
-              name: 'LIABILITY',
-              description: 'Obligations the company owes to external parties, such as loans or payables',
-            },
-          }),
-          tx.accountType.create({
-            data: {
-              name: 'EQUITY',
-              description: 'Owner’s residual interest after liabilities are subtracted from assets',
-            },
-          }),
-          tx.accountType.create({
-            data: {
-              name: 'INCOME',
-              description: 'Revenue generated from core operations such as product sales or services',
-            },
-          }),
-          tx.accountType.create({
-            data: {
-              name: 'EXPENSE',
-              description: 'Costs incurred in running daily business operations, like rent and salaries',
-            },
-          }),
-          tx.accountType.create({
-            data: {
-              name: 'PAYABLE',
-              description: 'Payable Accounts',
-            },
-          }),
-          tx.accountType.create({
-            data: {
-              name: 'RECEIVABLE',
-              description: 'Accounts Receivable',
-            },
-          }),
-          tx.accountType.create({
-            data: {
-              name: 'CAPITAL',
-              description: 'Capital Accounts',
-            },
-          }),
-        ]);
+          });
+        }
 
         // Map parent names to their generated IDs
         // const parentMap = parents.reduce(

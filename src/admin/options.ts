@@ -19,7 +19,7 @@ import { ManufactureInputResource } from './resources/manufacture-input.config.a
 import { ManufactureOutputResource } from './resources/manufacture-output.config.adminjs.js';
 import { AccountTypeResource } from './resources/account-type.config.adminjs.js';
 import { AccountResource } from './resources/account.config.adminjs.js';
-import { TransactionResource } from './resources/transaction.config.adminjs.js';
+import { InvestmentTransactionResource, TransactionResource } from './resources/transaction.config.adminjs.js';
 import { LedgerEntryResource } from './resources/ledger-entry.config.adminjs.js';
 import { PartnerResource } from './resources/partner.config.adminjs.js';
 import { ShareHolderProfitShareResource } from './resources/share-holder-profit-share.config.adminjs.js';
@@ -81,6 +81,7 @@ const options: AdminJSOptions = {
     ManufactureOutputResource,
     AccountTypeResource,
     AccountResource,
+    InvestmentTransactionResource,
     TransactionResource,
     LedgerEntryResource,
     PartnerResource,

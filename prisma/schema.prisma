@@ -363,43 +363,80 @@ model AccountType {
 }
 
 model Account {
-  id                   String        @id @default(uuid())
-  name                 String
-  typeId               String
-  type                 AccountType   @relation(fields: [typeId], references: [id])
-  balance              Decimal       @default(0.0)
-  isDefault            Boolean       @default(false)
-  isActive             Boolean       @default(true)
-  isAllowed            Boolean       @default(true)
-  isDeleted            Boolean       @default(false)
-  deletedAt            DateTime?
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
-  sentTransactions     Transaction[] @relation("TransactionFromAccount")
-  receivedTransactions Transaction[] @relation("TransactionToAccount")
-  LedgerEntry          LedgerEntry[]
-  Invoice              Invoice[]
-  Partner              Partner[]
+  id                    String        @id @default(uuid())
+  name                  String
+  typeId                String
+  type                  AccountType   @relation(fields: [typeId], references: [id])
+  balance               Decimal       @default(0.0)
+  isDefault             Boolean       @default(false)
+  isActive              Boolean       @default(true)
+  isAllowed             Boolean       @default(true)
+  isDeleted             Boolean       @default(false)
+  deletedAt             DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  isOrganizationAccount Boolean       @default(false)
+  sentTransactions      Transaction[] @relation("TransactionFromAccount")
+  receivedTransactions  Transaction[] @relation("TransactionToAccount")
+  LedgerEntry           LedgerEntry[]
+  Invoice               Invoice[]
+  Partner               Partner[]
+}
+
+enum TransactionType {
+  // Shareholder-related
+  INVESTMENT // Shareholder invests in the company
+  CAPITAL_WITHDRAWAL // Shareholder withdraws their capital
+  PROFIT_DISTRIBUTION // Shareholder receives profit/dividend
+
+  // Sales
+  CUSTOMER_PAYMENT // Customer pays invoice
+  SALES_REFUND // Refund issued to customer
+
+  // Purchase
+  SUPPLIER_PAYMENT // Payment made to supplier
+  PURCHASE_RETURN // Refund received from supplier
+
+  // Internal operations
+  EXPENSE // Operating expense (e.g. rent, salary)
+  INCOME // Non-sale income (e.g. interest, other revenue)
+  SALARY_PAYMENT // Employee salary
+  LOAN_RECEIVED // Loan taken by company
+  LOAN_REPAYMENT // Loan repayment
+
+  // Transfers
+  BANK_DEPOSIT // Cash to bank
+  BANK_WITHDRAWAL // Bank to cash
+  CASH_TRANSFER // Cash moved between locations
+
+  // Adjustments
+  OPENING_BALANCE // Initial balance setup
+  MANUAL_ADJUSTMENT // Manual adjustment or correction
+
+  // Other
+  TAX_PAYMENT // Tax/VAT paid
+  INTEREST_INCOME // Earned interest
+  INTEREST_EXPENSE // Paid interest
 }
 
 model Transaction {
-  id            String        @id @default(uuid())
+  id            String          @id @default(uuid())
   fromAccountId String
   toAccountId   String
-  amount        Decimal       @default(0.0)
-  type          String // e.g. "sale", "payment", "withdraw", "purchase"
+  amount        Decimal         @default(0.0)
+  type          TransactionType // e.g. "sale", "payment", "withdraw", "purchase"
   // referenceId     String? // optional: link to invoice, purchase, etc.
   note          String?
-  isActive      Boolean       @default(true)
-  isAllowed     Boolean       @default(true)
-  isDeleted     Boolean       @default(false)
+  isActive      Boolean         @default(true)
+  isAllowed     Boolean         @default(true)
+  isDeleted     Boolean         @default(false)
   deletedAt     DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  fromAccount   Account       @relation("TransactionFromAccount", fields: [fromAccountId], references: [id])
-  toAccount     Account       @relation("TransactionToAccount", fields: [toAccountId], references: [id])
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  fromAccount   Account         @relation("TransactionFromAccount", fields: [fromAccountId], references: [id])
+  toAccount     Account         @relation("TransactionToAccount", fields: [toAccountId], references: [id])
   LedgerEntry   LedgerEntry[]
-  Invoice       Invoice?      @relation(fields: [invoiceId], references: [id])
+  Invoice       Invoice?        @relation(fields: [invoiceId], references: [id])
   invoiceId     String?
 }
 

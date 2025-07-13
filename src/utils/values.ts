@@ -49,3 +49,168 @@ export const paymentStatus = [
   { code: 'CANCELLED', label: 'Cancelled', description: 'Payment was cancelled', color: '#a3a3a3' },
   { code: 'REFUNDED', label: 'Refunded', description: 'Payment returned', color: '#60a5fa' },
 ];
+
+export const accounts = [
+  // ASSET
+  { name: 'Cash', type: 'ASSET', isOrganizationAccount: true },
+  { name: 'Bank', type: 'ASSET', isOrganizationAccount: true },
+  { name: 'Inventory', type: 'ASSET', isOrganizationAccount: true },
+  { name: 'Accounts Receivable', type: 'ASSET', isOrganizationAccount: true },
+
+  // LIABILITY
+  { name: 'Accounts Payable', type: 'LIABILITY', isOrganizationAccount: true },
+  { name: 'Loan Payable', type: 'LIABILITY', isOrganizationAccount: true },
+  { name: 'Tax Payable', type: 'LIABILITY', isOrganizationAccount: true },
+
+  // INCOME
+  { name: 'Sales Revenue', type: 'INCOME', isOrganizationAccount: true },
+  { name: 'Service Income', type: 'INCOME', isOrganizationAccount: true },
+
+  // EXPENSE
+  { name: 'Purchase Expense', type: 'EXPENSE', isOrganizationAccount: true },
+  { name: 'Operating Expenses', type: 'EXPENSE', isOrganizationAccount: true },
+  { name: 'Salary Expense', type: 'EXPENSE', isOrganizationAccount: true },
+  { name: 'Transportation Expense', type: 'EXPENSE', isOrganizationAccount: true },
+  { name: 'Discounts Given', type: 'EXPENSE', isOrganizationAccount: true },
+
+  // EQUITY
+  { name: "Owner's Equity", type: 'EQUITY', isOrganizationAccount: true },
+  { name: 'Retained Earnings', type: 'EQUITY', isOrganizationAccount: true },
+];
+
+export const accountTypeData = [
+  {
+    name: 'ASSET',
+    description: 'Represents company-owned resources such as cash, inventory, and property',
+  },
+  {
+    name: 'LIABILITY',
+    description: 'Obligations the company owes to external parties, such as loans or payables',
+  },
+  {
+    name: 'EQUITY',
+    description: 'Owner’s residual interest after liabilities are subtracted from assets',
+  },
+  {
+    name: 'INCOME',
+    description: 'Revenue generated from core operations such as product sales or services',
+  },
+  {
+    name: 'EXPENSE',
+    description: 'Costs incurred in running daily business operations, like rent and salaries',
+  },
+  {
+    name: 'PAYABLE',
+    description: 'Payable Accounts',
+  },
+  {
+    name: 'RECEIVABLE',
+    description: 'Accounts Receivable',
+  },
+  {
+    name: 'CAPITAL',
+    description: 'Capital Accounts',
+  },
+];
+
+export const resources = [
+  'User',
+  'Role',
+  'Permission',
+  'RolePermission',
+  'Product',
+  'ProductCategory',
+  'Variant',
+  'Warehouse',
+  'Stock',
+  'stockExchangeStatus',
+  'StockExchangeType',
+  'stockExchangeStatusHistory',
+  'Lot',
+  'Batch',
+  'Manufacture',
+  'ManufactureInput',
+  'ManufactureOutput',
+  'AccountType',
+  'Account',
+  'Transaction',
+  'LedgerEntry',
+  'Partner',
+  'ShareHolderProfitShare',
+  'InvoiceType',
+  'InvoiceStatus',
+  'Invoice',
+  'InvoiceItem',
+  'InvoiceStatusHistory',
+  'OrderStatus',
+  'PurchaseOrder',
+  'PurchaseOrderStatusHistory',
+  'SaleOrder',
+  'SaleOrderStatusHistory',
+  'ExpenseType',
+  'Expense',
+  'ExpenseStatus',
+  'ExpenseStatusHistory',
+  'PaymentStatus',
+  'RelatedType',
+  'Payment',
+  'AuditLog',
+  'Setting',
+  'SettingType',
+  'SettingOption',
+];
+
+// Standard actions
+export const actions = ['create', 'read', 'update', 'delete'];
+
+export const managerAllowedActions: Record<string, string[]> = {
+  // Full CRUD for operational entries
+  Invoice: ['create', 'read', 'update'],
+  InvoiceItem: ['create', 'read', 'update'],
+  SaleOrder: ['create', 'read', 'update'],
+  PurchaseOrder: ['create', 'read', 'update'],
+  Expense: ['create', 'read', 'update'],
+  Payment: ['create', 'read', 'update'],
+
+  // Read/Update for master data
+  Product: ['read', 'update'],
+  ProductCategory: ['read'],
+  Variant: ['read'],
+  Stock: ['read'],
+  Warehouse: ['read'],
+  Partner: ['read', 'update'],
+
+  // Read-only for config & sensitive tables
+  User: ['read'],
+  Role: ['read'],
+  Permission: ['read'],
+  Setting: ['read'],
+  Account: ['read'],
+  LedgerEntry: ['read'],
+  Transaction: ['read'],
+  Manufacture: ['read'],
+};
+
+export const userAllowedActions: Record<string, string[]> = {
+  // Can view personal-related records
+  Invoice: ['read'],
+  InvoiceItem: ['read'],
+  SaleOrder: ['read', 'create'],
+  PurchaseOrder: ['read'],
+  Expense: ['read', 'create'],
+  Payment: ['read'],
+  Partner: ['read', 'update'],
+
+  // Can view products & stockExchange
+  Product: ['read'],
+  Variant: ['read'],
+  Stock: ['read'],
+  Warehouse: ['read'],
+
+  // Can view own profile
+  User: ['read'],
+
+  // Read-only on basic lookup/config
+  Setting: ['read'],
+  Account: ['read'],
+};

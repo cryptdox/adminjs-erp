@@ -9,6 +9,7 @@ const AdminComponents = {
 
   // PURCHASE ORDER
   NewPurchaseOrder: componentLoader.add('NewPurchaseOrder', `${__dirname}new-purchase-order`),
+
 };
 
 export default AdminComponents;
