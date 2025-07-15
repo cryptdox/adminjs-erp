@@ -74,7 +74,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                     connect: { name: invoiceType[1].name },
                   },
                   account: {
-                    connect: { id: supplier.accountId ?? '' },
+                    connect: { id:  '' },
+                    // connect: { id: supplier.accountId ?? '' },
                   },
                   CreatedBy: {
                     connect: { id: userId },

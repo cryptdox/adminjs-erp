@@ -9,7 +9,9 @@ const AdminComponents = {
 
   // PURCHASE ORDER
   NewPurchaseOrder: componentLoader.add('NewPurchaseOrder', `${__dirname}new-purchase-order`),
-
+  
+  // SELECT PICKER
+  SelectShareHolder: componentLoader.add('SelectShareHolder', `${__dirname}select/share-holder`),
 };
 
 export default AdminComponents;

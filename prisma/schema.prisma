@@ -380,12 +380,14 @@ model Account {
   receivedTransactions  Transaction[] @relation("TransactionToAccount")
   LedgerEntry           LedgerEntry[]
   Invoice               Invoice[]
-  Partner               Partner[]
+  Partner               Partner?      @relation(fields: [partnerId], references: [id])
+  partnerId             String?
 }
 
 enum TransactionType {
   // Shareholder-related
   INVESTMENT // Shareholder invests in the company
+  RECEIVE_INVESTMENT // Shareholder invests in the company
   CAPITAL_WITHDRAWAL // Shareholder withdraws their capital
   PROFIT_DISTRIBUTION // Shareholder receives profit/dividend
 
@@ -420,24 +422,28 @@ enum TransactionType {
 }
 
 model Transaction {
-  id            String          @id @default(uuid())
-  fromAccountId String
-  toAccountId   String
-  amount        Decimal         @default(0.0)
-  type          TransactionType // e.g. "sale", "payment", "withdraw", "purchase"
+  id                String          @id @default(uuid())
+  fromAccountId     String
+  toAccountId       String
+  amount            Decimal         @default(0.0)
+  type              TransactionType // e.g. "sale", "payment", "withdraw", "purchase"
   // referenceId     String? // optional: link to invoice, purchase, etc.
-  note          String?
-  isActive      Boolean         @default(true)
-  isAllowed     Boolean         @default(true)
-  isDeleted     Boolean         @default(false)
-  deletedAt     DateTime?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  fromAccount   Account         @relation("TransactionFromAccount", fields: [fromAccountId], references: [id])
-  toAccount     Account         @relation("TransactionToAccount", fields: [toAccountId], references: [id])
-  LedgerEntry   LedgerEntry[]
-  Invoice       Invoice?        @relation(fields: [invoiceId], references: [id])
-  invoiceId     String?
+  // Link to opposite party transaction (cross-linked)
+  siblingId         String? // self-relation
+  firstTransaction  Transaction?    @relation("TransactionSibling", fields: [siblingId], references: [id])
+  secondTransaction Transaction[]   @relation("TransactionSibling")
+  note              String?
+  isActive          Boolean         @default(true)
+  isAllowed         Boolean         @default(true)
+  isDeleted         Boolean         @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  fromAccount       Account         @relation("TransactionFromAccount", fields: [fromAccountId], references: [id])
+  toAccount         Account         @relation("TransactionToAccount", fields: [toAccountId], references: [id])
+  LedgerEntry       LedgerEntry[]
+  Invoice           Invoice?        @relation(fields: [invoiceId], references: [id])
+  invoiceId         String?
 }
 
 enum LedgerEntryType {
@@ -453,7 +459,7 @@ model LedgerEntry {
   transaction   Transaction     @relation(fields: [transactionId], references: [id])
   type          LedgerEntryType // "debit" or "credit"
   amount        Decimal
-  balanceAfter  Decimal // optional: running balance after this entry
+  balanceAfter  Decimal? // optional: running balance after this entry
   note          String?
   isActive      Boolean         @default(true)
   isAllowed     Boolean         @default(true)
@@ -485,12 +491,11 @@ model Partner {
   deletedAt              DateTime?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
-  account                Account?                @relation(fields: [accountId], references: [id])
-  accountId              String?
   ShareHolderProfitShare ShareHolderProfitShare?
   PurchaseOrder          PurchaseOrder[]
   SaleOrder              SaleOrder[]
   Expense                Expense[]
+  Account                Account[]
 }
 
 // FINANCE MANAGEMENT
