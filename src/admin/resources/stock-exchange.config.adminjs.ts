@@ -12,6 +12,6 @@ export const StockExchangeResource: ResourceWithOptions = {
       name: 'Inventory',
       icon: 'Archive' 
     },
-    listProperties:['productVariant', 'warehouse', 'lot', 'batch', 'quantity']
+    listProperties:['StockExchangeStatus', 'productVariant', 'warehouse', 'lot', 'batch', 'quantity']
   },
 };

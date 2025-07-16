@@ -31,7 +31,8 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
       icon: 'Book',
     },
     listProperties: ['fromAccount', 'amount', 'note'],
-    editProperties: ['fromAccount', 'amount', 'note', 'from', 'to'],
+    editProperties: ['fromAccount', 'amount', 'note'],
+    // editProperties: ['fromAccount', 'amount', 'note', 'from', 'to'],
     showProperties: ['fromAccount', 'amount', 'note'],
     actions: {
       list: {
@@ -53,7 +54,7 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
               const orgAssetAccount = await tx.account.findFirst({
                 where: {
                   name: {
-                    contains: request.payload.to ?? 'Cash',
+                    contains: 'Cash',
                     mode: 'insensitive',
                   },
                   isOrganizationAccount: accounts[0].isOrganizationAccount,
@@ -69,9 +70,9 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
 
               const shareHolderAssetAccount = await tx.account.findFirst({
                 where: {
-                  partnerId: request.payload.fromAccountId,
+                  partnerId: request.payload.fromAccount,
                   name: {
-                    contains: request.payload.from ?? 'Cash',
+                    contains: 'Cash',
                     mode: 'insensitive',
                   },
                 },
@@ -79,7 +80,7 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
 
               const shareHolderReceivableAccount = await tx.account.findFirst({
                 where: {
-                  partnerId: request.payload.fromAccountId,
+                  partnerId: request.payload.fromAccount,
                   name: {
                     contains: accounts[3].name,
                     mode: 'insensitive',
@@ -138,7 +139,7 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
                   transaction: { connect: { id: companyTransaction.id } },
                   amount: request.payload.amount,
                   account: { connect: { id: orgEquityAccount.id } },
-                  type: LedgerEntryType.DEBIT,
+                  type: LedgerEntryType.CREDIT,
                 },
               });
             });
@@ -172,30 +173,18 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
           edit: AdminComponents.SelectShareHolder,
         },
       },
-      from: {
-        isVisible: {
-          list: false,
-          filter: false,
-          show: true,
-          edit: true,
-        },
-        availableValues: [
-          { label: 'Cash', value: 'Cash' },
-          { label: 'Bank', value: 'Bank' },
-        ],
-      },
-      to: {
-        isVisible: {
-          list: false,
-          filter: false,
-          show: true,
-          edit: true,
-        },
-        availableValues: [
-          { label: 'Cash', value: 'Cash' },
-          { label: 'Bank', value: 'Bank' },
-        ],
-      },
+      // from: {
+      //   availableValues: [
+      //     { label: 'Cash', value: 'Cash' },
+      //     { label: 'Bank', value: 'Bank' },
+      //   ],
+      // },
+      // to: {
+      //   availableValues: [
+      //     { label: 'Cash', value: 'Cash' },
+      //     { label: 'Bank', value: 'Bank' },
+      //   ],
+      // },
     },
   },
 };

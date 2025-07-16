@@ -379,7 +379,6 @@ model Account {
   sentTransactions      Transaction[] @relation("TransactionFromAccount")
   receivedTransactions  Transaction[] @relation("TransactionToAccount")
   LedgerEntry           LedgerEntry[]
-  Invoice               Invoice[]
   Partner               Partner?      @relation(fields: [partnerId], references: [id])
   partnerId             String?
 }
@@ -496,6 +495,7 @@ model Partner {
   SaleOrder              SaleOrder[]
   Expense                Expense[]
   Account                Account[]
+  Invoice                Invoice[]
 }
 
 // FINANCE MANAGEMENT
@@ -548,8 +548,8 @@ model Invoice {
   invoiceNumber   String         @unique
   invoiceTypeId   String // "SALES" or "PURCHASE" or "EXPENSE"
   invoiceType     InvoiceType    @relation(fields: [invoiceTypeId], references: [id]) // "SALES" or "PURCHASE" or "EXPENSE"
-  accountId       String // Customer (for SALES) or Supplier (for PURCHASE or EXPENSE)
-  account         Account        @relation(fields: [accountId], references: [id])
+  partnerId       String // Customer (for SALES) or Supplier (for PURCHASE or EXPENSE)
+  partner         Partner        @relation(fields: [partnerId], references: [id])
   invoiceDate     DateTime
   dueDate         DateTime?
   totalAmount     Decimal        @default(0.0)
