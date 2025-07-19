@@ -7,10 +7,9 @@ import { PartnerType } from "@prisma/client";
 const api = new ApiClient()
 
 const SelectCustomer = (props: BasePropertyProps) => {
-    const { onChange, property, record } = props;
+    const { onChange, property, record, filter, where } = props;
     const [options, setOptions] = useState([]);
-
-    const selected = record.params[property.path] || '';
+    const [selectedValue, setSelectedValue] = useState<{ label: string, value: string }>(null);
 
     useEffect(() => {
         const resourceActionParam: ResourceActionAPIParams = {
@@ -34,19 +33,23 @@ const SelectCustomer = (props: BasePropertyProps) => {
             });
     }, []);
 
-    const handleChange = (selectedOption: any) => {
-        onChange(property.path, selectedOption?.value || '');
-    };
+    useEffect(() => {
+        let selected = options?.find(opt => opt.value === (where == 'filter' ? filter[property.path] : record?.params[property.path]))
+        setSelectedValue(selected)
+    }, [options])
 
     return (
         <div className="!pb-8">
-            <Label>* {camelToTitleCase(property.label)}</Label>
+            <Label>{where !== 'filter' && '*'} {camelToTitleCase(property.label)}</Label>
             <Select
                 options={options}
-                value={options.find(opt => opt.value === selected) || null}
-                onChange={handleChange}
+                value={selectedValue}
+                onChange={(selectedValue) => {
+                    onChange(property.path, selectedValue?.value || '');
+                    setSelectedValue(selectedValue)
+                }}
                 isClearable
-                required
+                required={where !== 'filter'}
             />
         </div>
     )

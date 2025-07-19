@@ -135,6 +135,8 @@ export const resources = [
   'Account',
   'Transaction',
   'LedgerEntry',
+  'InvestmentProfileInvestor',
+  'InvestmentProfile',
   'Partner',
   'ShareHolderProfitShare',
   'InvoiceType',

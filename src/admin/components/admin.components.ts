@@ -15,6 +15,7 @@ const AdminComponents = {
   
   // SELECT PICKER
   SelectShareHolder: componentLoader.add('SelectShareHolder', `${__dirname}select/share-holder`),
+  SelectInvestmentProfile: componentLoader.add('SelectInvestmentProfile', `${__dirname}select/investment-profile`),
 };
 
 export default AdminComponents;

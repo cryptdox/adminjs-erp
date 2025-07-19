@@ -45,6 +45,8 @@ import AdminComponents from './components/admin.components.js';
 import applicationCOnfiguration from '../utils/config.js';
 import { UnitResource } from './resources/unit.config.adminjs.js';
 import { UnitConversionResource } from './resources/unit-conversion.config.adminjs.js';
+import { InvestmentProfileResource } from './resources/investment-profile.config.adminjs.js';
+import { InvestmentProfileInvestorResource } from './resources/invetment-profile-investor.config.adminjs.js';
 
 const options: AdminJSOptions = {
   componentLoader,
@@ -84,6 +86,8 @@ const options: AdminJSOptions = {
     InvestmentTransactionResource,
     TransactionResource,
     LedgerEntryResource,
+    InvestmentProfileResource,
+    InvestmentProfileInvestorResource,
     PartnerResource,
     ShareHolderProfitShareResource,
     InvoiceTypeResource,

@@ -6,17 +6,17 @@ import { PartnerType } from "@prisma/client";
 
 const api = new ApiClient()
 
-const SelectShareHolder = (props: BasePropertyProps) => {
+const SelectInvestmentProfile = (props: BasePropertyProps) => {
     const { onChange, property, record, filter, where } = props;
     const [options, setOptions] = useState([]);
     const [selectedValue, setSelectedValue] = useState<{ label: string, value: string }>(null);
 
     useEffect(() => {
         const resourceActionParam: ResourceActionAPIParams = {
-            resourceId: 'Partner',
+            resourceId: 'InvestmentProfile',
             actionName: 'list',
             params: {
-                'filters.type': PartnerType.SHAREHOLDER,
+                'filters.acceptingInvest': true,
                 page: 1,
                 perPage: 500
             }
@@ -34,7 +34,7 @@ const SelectShareHolder = (props: BasePropertyProps) => {
     }, []);
 
     useEffect(() => {
-        let selected = options?.find(opt => opt.value === (where == 'filter' ? filter[property.path] : record?.params[property.path]))
+        let selected = options?.find(opt => opt.value === (where == 'filter' ? filter[property?.path] : record?.params[property?.path]))
         setSelectedValue(selected)
     }, [options])
 
@@ -55,4 +55,4 @@ const SelectShareHolder = (props: BasePropertyProps) => {
     )
 }
 
-export default SelectShareHolder
+export default SelectInvestmentProfile

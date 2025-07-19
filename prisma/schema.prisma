@@ -362,25 +362,37 @@ model AccountType {
   updatedAt   DateTime      @updatedAt
 }
 
+enum AccountHolderType {
+  ORGANIZATION
+  INVESTMENT_PROFILE
+  CUSTOMER
+  SHAREHOLDER
+  SUPPLIER
+  OTHER
+}
+
 model Account {
-  id                    String        @id @default(uuid())
+  id                    String             @id @default(uuid())
   name                  String
   typeId                String
-  type                  AccountType   @relation(fields: [typeId], references: [id])
-  balance               Decimal       @default(0.0)
-  isDefault             Boolean       @default(false)
-  isActive              Boolean       @default(true)
-  isAllowed             Boolean       @default(true)
-  isDeleted             Boolean       @default(false)
+  type                  AccountType        @relation(fields: [typeId], references: [id])
+  accountHolderType     AccountHolderType? @default(OTHER)
+  balance               Decimal            @default(0.0)
+  isDefault             Boolean            @default(false)
+  isActive              Boolean            @default(true)
+  isAllowed             Boolean            @default(true)
+  isDeleted             Boolean            @default(false)
   deletedAt             DateTime?
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
-  isOrganizationAccount Boolean       @default(false)
-  sentTransactions      Transaction[] @relation("TransactionFromAccount")
-  receivedTransactions  Transaction[] @relation("TransactionToAccount")
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  isOrganizationAccount Boolean            @default(false)
+  sentTransactions      Transaction[]      @relation("TransactionFromAccount")
+  receivedTransactions  Transaction[]      @relation("TransactionToAccount")
   LedgerEntry           LedgerEntry[]
-  Partner               Partner?      @relation(fields: [partnerId], references: [id])
+  Partner               Partner?           @relation(fields: [partnerId], references: [id])
   partnerId             String?
+  investmentProfileId   String?
+  InvestmentProfile     InvestmentProfile? @relation(fields: [investmentProfileId], references: [id])
 }
 
 enum TransactionType {
@@ -475,27 +487,28 @@ enum PartnerType {
 }
 
 model Partner {
-  id                     String                  @id @default(uuid())
-  name                   String
-  type                   PartnerType
-  email                  String?                 @unique
-  phone                  String?
-  address                String?
-  nid                    String? // Optional: for shareholder KYC
-  userId                 String?                 @unique
-  user                   User?                   @relation(fields: [userId], references: [id])
-  isActive               Boolean                 @default(true)
-  isAllowed              Boolean                 @default(true)
-  isDeleted              Boolean                 @default(false)
-  deletedAt              DateTime?
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
-  ShareHolderProfitShare ShareHolderProfitShare?
-  PurchaseOrder          PurchaseOrder[]
-  SaleOrder              SaleOrder[]
-  Expense                Expense[]
-  Account                Account[]
-  Invoice                Invoice[]
+  id                        String                      @id @default(uuid())
+  name                      String
+  type                      PartnerType
+  email                     String?                     @unique
+  phone                     String?
+  address                   String?
+  nid                       String? // Optional: for shareholder KYC
+  userId                    String?                     @unique
+  user                      User?                       @relation(fields: [userId], references: [id])
+  isActive                  Boolean                     @default(true)
+  isAllowed                 Boolean                     @default(true)
+  isDeleted                 Boolean                     @default(false)
+  deletedAt                 DateTime?
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
+  ShareHolderProfitShare    ShareHolderProfitShare?
+  PurchaseOrder             PurchaseOrder[]
+  SaleOrder                 SaleOrder[]
+  Expense                   Expense[]
+  Account                   Account[]
+  Invoice                   Invoice[]
+  InvestmentProfileInvestor InvestmentProfileInvestor[]
 }
 
 // FINANCE MANAGEMENT
@@ -514,6 +527,37 @@ model Partner {
 //   PAID
 //   CANCELLED
 // }
+
+model InvestmentProfile {
+  id                        String                      @id @default(uuid())
+  name                      String
+  description               String?
+  acceptingInvest           Boolean                     @default(false)
+  isActive                  Boolean                     @default(true)
+  isAllowed                 Boolean                     @default(true)
+  isDeleted                 Boolean                     @default(false)
+  deletedAt                 DateTime?
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
+  InvestmentProfileInvestor InvestmentProfileInvestor[]
+  Account                   Account[]
+}
+
+model InvestmentProfileInvestor {
+  id                  String            @id @default(uuid())
+  investmentProfileId String
+  investmentProfile   InvestmentProfile @relation(fields: [investmentProfileId], references: [id])
+  investorId          String
+  investor            Partner           @relation(fields: [investorId], references: [id])
+  percent             Decimal           @default(0.0)
+  isActive            Boolean           @default(true)
+  isAllowed           Boolean           @default(true)
+  isDeleted           Boolean           @default(false)
+  deletedAt           DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  @@unique([investmentProfileId, investorId])
+}
 
 model ShareHolderProfitShare {
   id           String    @id @default(uuid())
