@@ -9,6 +9,9 @@ const AdminComponents = {
 
   // PURCHASE ORDER
   NewPurchaseOrder: componentLoader.add('NewPurchaseOrder', `${__dirname}new-purchase-order`),
+
+  // SALE ORDER
+  NewSaleOrder: componentLoader.add('NewSaleOrder', `${__dirname}new-sale-order`),
   
   // SELECT PICKER
   SelectShareHolder: componentLoader.add('SelectShareHolder', `${__dirname}select/share-holder`),

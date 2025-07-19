@@ -2,7 +2,7 @@ import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
 import { ActionContext, ActionRequest, ResourceWithOptions } from 'adminjs';
 import AdminComponents from '../components/admin.components.js';
-import { orderSchema } from '../validations.js';
+import { purchaseOrderSchema } from '../validations.js';
 import * as Yup from 'yup';
 import { accounts, expenseStatus, invoiceType, stockExchangeStatus } from '../../utils/values.js';
 import { LedgerEntryType, TransactionType } from '@prisma/client';
@@ -27,7 +27,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
         },
         handler: async (request: ActionRequest, response: any, context: ActionContext) => {
           try {
-            const validatedData = await orderSchema.validate(request.payload, { abortEarly: false });
+            const validatedData = await purchaseOrderSchema.validate(request.payload, { abortEarly: false });
             const userId = context?.currentAdmin?.user?.id;
             const now = new Date();
             const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD

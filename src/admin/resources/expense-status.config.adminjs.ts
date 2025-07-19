@@ -1,7 +1,8 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
+import { ResourceWithOptions } from 'adminjs';
 
-export const ExpenseStatusResource = {
+export const ExpenseStatusResource: ResourceWithOptions = {
   resource: {
     model: getModelByName('ExpenseStatus'),
     client: prisma,
@@ -11,5 +12,6 @@ export const ExpenseStatusResource = {
       name: 'Expense',
       icon: 'DivideCircle' 
     },
+    listProperties: ['name', 'displayName', 'description']
   },
 };

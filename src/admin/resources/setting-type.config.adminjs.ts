@@ -1,7 +1,8 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
+import { ResourceWithOptions } from 'adminjs';
 
-export const SettingTypeResource = {
+export const SettingTypeResource: ResourceWithOptions = {
   resource: {
     model: getModelByName('SettingType'),
     client: prisma,
@@ -11,5 +12,6 @@ export const SettingTypeResource = {
       name: 'Configuration',
       icon: 'Settings' 
     },
+    listProperties: ['label', 'name', 'description', 'uiComponent']
   },
 };

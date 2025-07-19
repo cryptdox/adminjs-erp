@@ -1,7 +1,7 @@
 import { ApiClient, BasePropertyProps, ResourceActionAPIParams, useNotice } from 'adminjs';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { purchaseOrderSchema, ValidationErrors } from '../../validations.js';
+import { saleOrderSchema, ValidationErrors } from '../../validations.js';
 import * as Yup from 'yup';
 
 export interface SelectedValue {
@@ -14,8 +14,6 @@ export interface StockItemInput {
   product: SelectedValue;
   variant: SelectedValue;
   warehouse: SelectedValue;
-  manufactureDate: string;
-  expiryDate: string;
   unitPrice: number;
   quantity: number;
   paid: number;
@@ -83,7 +81,7 @@ export interface PurchaseOrderPayload {
 
 const api = new ApiClient();
 
-export const useNewPurchaseOrder = (props: BasePropertyProps) => {
+export const useNewSaleOrder = (props: BasePropertyProps) => {
   const { resource } = props;
   const navigate = useNavigate();
   const sendNotice = useNotice();
@@ -105,7 +103,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
     const timePart = '[000000]'; //now.toTimeString().slice(0, 8).replace(/:/g, '');  // HHMMSS
     const randomPart = '[0000]'; //Math.floor(1000 + Math.random() * 9000);         // 4-digit random number
-    const newOrderNum = `PO-${datePart}${timePart}-${randomPart}`;
+    const newOrderNum = `SO-${datePart}${timePart}-${randomPart}`;
     setOrderNumber(newOrderNum);
   }, []);
 
@@ -552,7 +550,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
         totalRemainAmount,
         grandTotal,
       };
-      await purchaseOrderSchema.validate(payload, { abortEarly: false });
+      await saleOrderSchema.validate(payload, { abortEarly: false });
       setShowModal(true);
     } catch (err) {
       if (err instanceof Yup.ValidationError) {

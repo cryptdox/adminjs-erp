@@ -1,7 +1,8 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
+import { ResourceWithOptions } from 'adminjs';
 
-export const PaymentResource = {
+export const PaymentResource: ResourceWithOptions = {
   resource: {
     model: getModelByName('Payment'),
     client: prisma,
@@ -11,5 +12,7 @@ export const PaymentResource = {
       name: 'Payment',
       icon: 'Airplay' 
     },
+    listProperties: ['relatedType', 'status', 'referenceNo', 'amount', 'currency', 'paymentMethod', 'paidAt'],
+    
   },
 };

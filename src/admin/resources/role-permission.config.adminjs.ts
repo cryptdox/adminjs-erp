@@ -1,7 +1,8 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
+import { ResourceWithOptions } from 'adminjs';
 
-export const RolePermissionResource = {
+export const RolePermissionResource: ResourceWithOptions = {
   resource: {
     model: getModelByName('RolePermission'),
     client: prisma,
@@ -11,5 +12,7 @@ export const RolePermissionResource = {
       name: 'HRMS',
       icon: 'Users' 
     },
+    listProperties: ['permission', 'role']
+    
   },
 };
