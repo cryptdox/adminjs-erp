@@ -271,6 +271,7 @@ export const tenantModules = {
 const basicModule = [...tenantModules.userManagement, ...tenantModules.inventoryManagement];
 const manufacturingProModule = [
   ...tenantModules.userManagement,
+  ...tenantModules.partners,
   ...tenantModules.inventoryManagement,
   ...tenantModules.manufacturing,
   ...tenantModules.orders,

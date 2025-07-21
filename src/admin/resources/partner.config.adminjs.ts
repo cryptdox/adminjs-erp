@@ -20,7 +20,7 @@ export const PartnerResource: ResourceWithOptions = {
     listProperties: ['type', 'name', 'phone', 'account'],
     editProperties: ['type', 'name', 'email', 'phone', 'address', 'nid'],
     actions: {
-      list:{
+      list: {
         isAccessible: (context: ActionContext) => {
           const isSuper = context.currentAdmin.isSuper;
           const tenantId = context.currentAdmin?.tenantId;
@@ -53,7 +53,7 @@ export const PartnerResource: ResourceWithOptions = {
             const tenantId = context.currentAdmin.tenantId ?? '';
             await prisma.$transaction(async (tx) => {
               const partner = await tx.partner.create({
-                data: request.payload as Partner,
+                data: { ...request.payload, tenantId } as Partner,
               });
               await tx.account.create({
                 data: {

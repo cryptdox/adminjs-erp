@@ -12,19 +12,28 @@ export const PackageResource: ResourceWithOptions = {
   options: {
     navigation: {
       name: 'HRMS',
-      icon: 'Users'
+      icon: 'Users',
     },
     listProperties: ['name', 'packageType', 'price', 'discountType', 'discount'],
-    editProperties:['name', 'packageType', 'price', 'discountType', 'discount', 'description', 'imageUrl'],
-    showProperties:['name', 'packageType', 'price', 'discountType', 'discount', 'description', 'imageUrl'],
+    editProperties: ['name', 'packageType', 'price', 'discountType', 'discount', 'description', 'imageUrl'],
+    showProperties: ['name', 'packageType', 'price', 'discountType', 'discount', 'description', 'imageUrl'],
     actions: {
+      list: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
+      show: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
       new: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
+      edit: {
         isVisible: false,
       },
-      // edit: {
-      //   isVisible: false,
-      // },
       delete: {
+        isVisible: false,
+      },
+      bulkDelete: {
         isVisible: false,
       },
     },
