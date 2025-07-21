@@ -1,6 +1,6 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
-import { ResourceWithOptions } from 'adminjs';
+import { ActionContext, ResourceWithOptions } from 'adminjs';
 
 export const SubscriptionResource: ResourceWithOptions = {
   resource: {
@@ -15,14 +15,23 @@ export const SubscriptionResource: ResourceWithOptions = {
     listProperties: ['tenant', 'package', 'startDate', 'endDate'],
     showProperties: ['tenant', 'package', 'startDate', 'endDate'],
     actions: {
+      list: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
+      show: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
       new: {
         isVisible: false,
       },
       edit: {
-        isVisible: false,
+        isAccessible: false,
       },
       delete: {
-        isVisible: false,
+        isAccessible: false,
+      },
+      bulkDelete: {
+        isAccessible: false,
       },
     },
   },

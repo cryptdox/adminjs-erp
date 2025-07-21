@@ -14,6 +14,7 @@ const AdminComponents = {
   NewSaleOrder: componentLoader.add('NewSaleOrder', `${__dirname}new-sale-order`),
   
   // SELECT PICKER
+  SelectTenant: componentLoader.add('SelectTenant', `${__dirname}select/tenant`),
   SelectShareHolder: componentLoader.add('SelectShareHolder', `${__dirname}select/share-holder`),
   SelectInvestmentProfile: componentLoader.add('SelectInvestmentProfile', `${__dirname}select/investment-profile`),
 };

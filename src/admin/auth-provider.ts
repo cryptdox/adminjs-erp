@@ -16,6 +16,9 @@ const provider = new DefaultAuthProvider({
     if (matched) {
       const isSuper = user?.isSuper;
       const tenantId = user?.tenantId;
+
+      console.log("isSuper: ", isSuper)
+      console.log("tenantId: ", tenantId)
       //
       // CHECK TENANT< SUBSCRIPTION PACKAGE AND SUPER HERE
       //

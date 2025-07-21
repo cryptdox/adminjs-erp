@@ -1,6 +1,6 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
-import { ResourceWithOptions } from 'adminjs';
+import { ActionContext, ResourceWithOptions } from 'adminjs';
 
 export const TenantResource: ResourceWithOptions = {
   resource: {
@@ -10,20 +10,29 @@ export const TenantResource: ResourceWithOptions = {
   options: {
     navigation: {
       name: 'HRMS',
-      icon: 'Users'
+      icon: 'Users',
     },
     listProperties: ['name', 'email', 'phone', 'address'],
     showProperties: ['name', 'email', 'phone', 'address'],
-    actions:{
-      new:{
-        isVisible: false
+    actions: {
+      list: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
       },
-      edit:{
-        isVisible: false
+      show: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
       },
-      delete:{
-        isVisible: false
-      }
-    }
+      new: {
+        isVisible: false,
+      },
+      edit: {
+        isVisible: false,
+      },
+      delete: {
+        isVisible: false,
+      },
+      bulkDelete: {
+        isVisible: false,
+      },
+    },
   },
 };

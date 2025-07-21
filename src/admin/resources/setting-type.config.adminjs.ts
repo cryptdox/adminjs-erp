@@ -1,6 +1,6 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
-import { ResourceWithOptions } from 'adminjs';
+import { ActionContext, ResourceWithOptions } from 'adminjs';
 
 export const SettingTypeResource: ResourceWithOptions = {
   resource: {
@@ -8,10 +8,30 @@ export const SettingTypeResource: ResourceWithOptions = {
     client: prisma,
   },
   options: {
-    navigation: { 
+    navigation: {
       name: 'Configuration',
-      icon: 'Settings' 
+      icon: 'Settings',
     },
-    listProperties: ['label', 'name', 'description', 'uiComponent']
+    listProperties: ['label', 'name', 'description', 'uiComponent'],
+    actions: {
+      list: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
+      show: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
+      new: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
+      edit: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
+      delete: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
+      bulkDelete: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
+    },
   },
 };

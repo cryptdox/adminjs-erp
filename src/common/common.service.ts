@@ -709,7 +709,6 @@ export class CommonService {
 
     for (const item of settingsToInsert) {
       const type = await tx.settingType.findFirst({ where: { name: item.typeName } });
-
       if (type) {
         await tx.setting.create({
           data: {

@@ -1,6 +1,6 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
-import { ResourceWithOptions } from 'adminjs';
+import { ActionContext, ResourceWithOptions } from 'adminjs';
 
 export const SubscriptionPaymentResource: ResourceWithOptions = {
   resource: {
@@ -10,18 +10,27 @@ export const SubscriptionPaymentResource: ResourceWithOptions = {
   options: {
     navigation: {
       name: 'HRMS',
-      icon: 'Users'
+      icon: 'Users',
     },
     listProperties: ['subscriptionPaymentFLow', 'subscriptionPaymentStatus', 'amount', 'subscriptionPaymentCoupon'],
-    showProperties:['package', 'permission'],
+    showProperties: ['package', 'permission'],
     actions: {
+      list: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
+      show: {
+        isVisible: (context: ActionContext) => context.currentAdmin.isSuper,
+      },
       new: {
-        isVisible: false,
+        isVisible: (context: ActionContext) => false,
       },
       edit: {
         isAccessible: false,
       },
       delete: {
+        isAccessible: false,
+      },
+      bulkDelete: {
         isAccessible: false,
       },
     },

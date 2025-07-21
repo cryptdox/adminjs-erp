@@ -4,7 +4,7 @@ import { ActionContext, ActionRequest, ResourceWithOptions } from 'adminjs';
 import AdminComponents from '../components/admin.components.js';
 import { saleOrderSchema } from '../validations.js';
 import * as Yup from 'yup';
-import { accounts, expenseStatus, invoiceType, stockExchangeStatus } from '../../utils/values.js';
+import { accounts, actions, expenseStatus, invoiceType, stockExchangeStatus } from '../../utils/values.js';
 import { LedgerEntryType, TransactionType } from '@prisma/client';
 
 export const SaleOrderResource: ResourceWithOptions = {
@@ -13,13 +13,41 @@ export const SaleOrderResource: ResourceWithOptions = {
     client: prisma,
   },
   options: {
-    navigation: { 
+    navigation: {
       name: 'Order',
-      icon: 'ShoppingCart' 
+      icon: 'ShoppingCart',
     },
     listProperties: ['orderNumber', 'partner', 'orderDate'],
+    filterProperties: ['Tenant'],
     actions: {
+      list:{
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[1]
+          );
+          return !isSuper && hasPermission.length;
+        },
+        before: async (request: ActionRequest, context: ActionContext): Promise<ActionRequest> => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const { query = {} } = request;
+          let newQuery = { ...query };
+          if (!isSuper && tenantId) newQuery = { ...newQuery, ['filters.Tenant']: tenantId };
+          request.query = newQuery;
+          return request;
+        },
+      },
       new: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[0]
+          );
+          return !isSuper && hasPermission.length;
+        },
         component: AdminComponents.NewSaleOrder,
         hideActionHeader: true,
         before: async (request: ActionRequest) => {
@@ -266,9 +294,9 @@ export const SaleOrderResource: ResourceWithOptions = {
               if (processStockItems().totalPaid > 0) {
                 const companyPaidTransaction = await tx.transaction.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     amount: processStockItems().totalPaid,
                     fromAccount: { connect: { id: orgCashAccount.id } },
                     toAccount: { connect: { id: orgPayableAccount.id } },
@@ -278,9 +306,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 await tx.ledgerEntry.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     transaction: { connect: { id: companyPaidTransaction.id } },
                     amount: processStockItems().totalPaid,
                     account: { connect: { id: orgPayableAccount.id } },
@@ -290,9 +318,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 await tx.ledgerEntry.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     transaction: { connect: { id: companyPaidTransaction.id } },
                     amount: processStockItems().totalPaid,
                     account: { connect: { id: orgCashAccount.id } },
@@ -302,9 +330,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 const supplierReceivedTransaction = await tx.transaction.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     amount: processStockItems().totalPaid,
                     fromAccount: { connect: { id: supplierReceivableAccount.id } },
                     toAccount: { connect: { id: supplierCashAccount.id } },
@@ -314,9 +342,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 await tx.ledgerEntry.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     transaction: { connect: { id: supplierReceivedTransaction.id } },
                     amount: processStockItems().totalPaid,
                     account: { connect: { id: supplierCashAccount.id } },
@@ -326,9 +354,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 await tx.ledgerEntry.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     transaction: { connect: { id: supplierReceivedTransaction.id } },
                     amount: processStockItems().totalPaid,
                     account: { connect: { id: supplierReceivableAccount.id } },
@@ -349,9 +377,9 @@ export const SaleOrderResource: ResourceWithOptions = {
               for (const item of payload.stockItems) {
                 const batch = await tx.batch.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     batchNumber: `BATCH-${dateTimePart}-${randomPart()}`,
                     manufactureDate: item.manufactureDate ? new Date(item.manufactureDate) : undefined,
                     expiryDate: item.expiryDate ? new Date(item.expiryDate) : undefined,
@@ -360,9 +388,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 const stockExchange = await tx.stockExchange.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     productVariant: {
                       connect: { id: item.variant.value },
                     },
@@ -400,9 +428,9 @@ export const SaleOrderResource: ResourceWithOptions = {
                 item.receivedQuantity > 0 &&
                   (await tx.stockExchange.create({
                     data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                      Tenant: {
+                        connect: { id: tenantId },
+                      },
                       productVariant: {
                         connect: { id: item.variant.value },
                       },
@@ -430,9 +458,9 @@ export const SaleOrderResource: ResourceWithOptions = {
                   for (const e of item.expenses) {
                     await tx.expense.create({
                       data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                        Tenant: {
+                          connect: { id: tenantId },
+                        },
                         orderNumber: purchaseOrder.orderNumber,
                         partner: { connect: { id: e.partner.value ?? '' } },
                         expenseType: { connect: { id: e.expenseType.value ?? '' } },
@@ -445,9 +473,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                     const companyTransaction = await tx.transaction.create({
                       data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                        Tenant: {
+                          connect: { id: tenantId },
+                        },
                         amount: e.totalAmount,
                         fromAccount: { connect: { id: orgCashAccount.id } },
                         toAccount: { connect: { id: orgPayableAccount.id } },
@@ -458,9 +486,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                     await tx.ledgerEntry.create({
                       data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                        Tenant: {
+                          connect: { id: tenantId },
+                        },
                         transaction: { connect: { id: companyTransaction.id } },
                         amount: e.totalAmount,
                         account: { connect: { id: orgCashAccount.id } },
@@ -470,9 +498,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                     await tx.ledgerEntry.create({
                       data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                        Tenant: {
+                          connect: { id: tenantId },
+                        },
                         transaction: { connect: { id: companyTransaction.id } },
                         amount: e.totalAmount,
                         account: { connect: { id: orgPayableAccount.id } },
@@ -502,9 +530,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                     const expenseOnTransaction = await tx.transaction.create({
                       data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                        Tenant: {
+                          connect: { id: tenantId },
+                        },
                         amount: e.totalAmount,
                         fromAccount: { connect: { id: expOn.id } },
                         toAccount: { connect: { id: expThrough.id } },
@@ -515,9 +543,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                     await tx.ledgerEntry.create({
                       data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                        Tenant: {
+                          connect: { id: tenantId },
+                        },
                         transaction: { connect: { id: expenseOnTransaction.id } },
                         amount: e.totalAmount,
                         account: { connect: { id: expThrough.id } },
@@ -527,9 +555,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                     await tx.ledgerEntry.create({
                       data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                        Tenant: {
+                          connect: { id: tenantId },
+                        },
                         transaction: { connect: { id: expenseOnTransaction.id } },
                         amount: e.totalAmount,
                         account: { connect: { id: expOn.id } },
@@ -540,9 +568,9 @@ export const SaleOrderResource: ResourceWithOptions = {
                     if (e.paidAmount) {
                       await tx.expense.create({
                         data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                          Tenant: {
+                            connect: { id: tenantId },
+                          },
                           orderNumber: purchaseOrder.orderNumber,
                           partner: { connect: { id: e.partner.value } },
                           expenseType: { connect: { id: e.expenseType.value } },
@@ -559,9 +587,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                       const companyTransaction = await tx.transaction.create({
                         data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                          Tenant: {
+                            connect: { id: tenantId },
+                          },
                           amount: e.paidAmount,
                           fromAccount: { connect: { id: orgPayableAccount.id } },
                           toAccount: { connect: { id: orgCashAccount.id } },
@@ -572,9 +600,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                       await tx.ledgerEntry.create({
                         data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                          Tenant: {
+                            connect: { id: tenantId },
+                          },
                           transaction: { connect: { id: companyTransaction.id } },
                           amount: e.paidAmount,
                           account: { connect: { id: orgCashAccount.id } },
@@ -584,9 +612,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                       await tx.ledgerEntry.create({
                         data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                          Tenant: {
+                            connect: { id: tenantId },
+                          },
                           transaction: { connect: { id: companyTransaction.id } },
                           amount: e.paidAmount,
                           account: { connect: { id: orgCashAccount.id } },
@@ -606,9 +634,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                       const expenseOnTransaction = await tx.transaction.create({
                         data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                          Tenant: {
+                            connect: { id: tenantId },
+                          },
                           amount: e.totalAmount,
                           fromAccount: { connect: { id: expThrough.id } },
                           toAccount: { connect: { id: expCash.id } },
@@ -619,9 +647,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                       await tx.ledgerEntry.create({
                         data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                          Tenant: {
+                            connect: { id: tenantId },
+                          },
                           transaction: { connect: { id: expenseOnTransaction.id } },
                           amount: e.totalAmount,
                           account: { connect: { id: expCash.id } },
@@ -631,9 +659,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                       await tx.ledgerEntry.create({
                         data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                          Tenant: {
+                            connect: { id: tenantId },
+                          },
                           transaction: { connect: { id: expenseOnTransaction.id } },
                           amount: e.totalAmount,
                           account: { connect: { id: expThrough.id } },
@@ -648,9 +676,9 @@ export const SaleOrderResource: ResourceWithOptions = {
               for (const exp of payload.expenses) {
                 await tx.expense.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     orderNumber: purchaseOrder.orderNumber,
                     partner: { connect: { id: exp.partner.value ?? '' } },
                     expenseType: { connect: { id: exp.expenseType.value ?? '' } },
@@ -667,9 +695,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 const companyTransaction = await tx.transaction.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     amount: exp.totalAmount,
                     fromAccount: { connect: { id: orgCashAccount.id } },
                     toAccount: { connect: { id: orgPayableAccount.id } },
@@ -680,9 +708,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 await tx.ledgerEntry.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     transaction: { connect: { id: companyTransaction.id } },
                     amount: exp.totalAmount,
                     account: { connect: { id: orgCashAccount.id } },
@@ -692,9 +720,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 await tx.ledgerEntry.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     transaction: { connect: { id: companyTransaction.id } },
                     amount: exp.totalAmount,
                     account: { connect: { id: orgPayableAccount.id } },
@@ -724,9 +752,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 const expenseOnTransaction = await tx.transaction.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     amount: exp.totalAmount,
                     fromAccount: { connect: { id: expOn.id } },
                     toAccount: { connect: { id: expThrough.id } },
@@ -737,9 +765,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 await tx.ledgerEntry.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     transaction: { connect: { id: expenseOnTransaction.id } },
                     amount: exp.totalAmount,
                     account: { connect: { id: expThrough.id } },
@@ -749,9 +777,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                 await tx.ledgerEntry.create({
                   data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                    Tenant: {
+                      connect: { id: tenantId },
+                    },
                     transaction: { connect: { id: expenseOnTransaction.id } },
                     amount: exp.totalAmount,
                     account: { connect: { id: expOn.id } },
@@ -762,9 +790,9 @@ export const SaleOrderResource: ResourceWithOptions = {
                 if (exp.paidAmount) {
                   await tx.expense.create({
                     data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                      Tenant: {
+                        connect: { id: tenantId },
+                      },
                       orderNumber: purchaseOrder.orderNumber,
                       partner: { connect: { id: exp.partner.value } },
                       expenseType: { connect: { id: exp.expenseType.value } },
@@ -781,9 +809,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                   const companyTransaction = await tx.transaction.create({
                     data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                      Tenant: {
+                        connect: { id: tenantId },
+                      },
                       amount: exp.paidAmount,
                       fromAccount: { connect: { id: orgPayableAccount.id } },
                       toAccount: { connect: { id: orgCashAccount.id } },
@@ -794,9 +822,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                   await tx.ledgerEntry.create({
                     data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                      Tenant: {
+                        connect: { id: tenantId },
+                      },
                       transaction: { connect: { id: companyTransaction.id } },
                       amount: exp.paidAmount,
                       account: { connect: { id: orgCashAccount.id } },
@@ -806,9 +834,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                   await tx.ledgerEntry.create({
                     data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                      Tenant: {
+                        connect: { id: tenantId },
+                      },
                       transaction: { connect: { id: companyTransaction.id } },
                       amount: exp.paidAmount,
                       account: { connect: { id: orgCashAccount.id } },
@@ -828,9 +856,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                   const expenseOnTransaction = await tx.transaction.create({
                     data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                      Tenant: {
+                        connect: { id: tenantId },
+                      },
                       amount: exp.totalAmount,
                       fromAccount: { connect: { id: expThrough.id } },
                       toAccount: { connect: { id: expCash.id } },
@@ -841,9 +869,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                   await tx.ledgerEntry.create({
                     data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                      Tenant: {
+                        connect: { id: tenantId },
+                      },
                       transaction: { connect: { id: expenseOnTransaction.id } },
                       amount: exp.totalAmount,
                       account: { connect: { id: expCash.id } },
@@ -853,9 +881,9 @@ export const SaleOrderResource: ResourceWithOptions = {
 
                   await tx.ledgerEntry.create({
                     data: {
-                  Tenant: {
-                    connect: { id: tenantId },
-                  },
+                      Tenant: {
+                        connect: { id: tenantId },
+                      },
                       transaction: { connect: { id: expenseOnTransaction.id } },
                       amount: exp.totalAmount,
                       account: { connect: { id: expThrough.id } },
@@ -912,6 +940,43 @@ export const SaleOrderResource: ResourceWithOptions = {
         },
         after: (response: any, request: ActionRequest, context: ActionContext) => {
           return response;
+        },
+      },
+      edit: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[2]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+      delete: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[3]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+      bulkDelete: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[3]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+    },
+    properties: {
+      Tenant: {
+        components: {
+          filter: AdminComponents.SelectTenant,
         },
       },
     },

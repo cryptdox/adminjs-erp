@@ -1,6 +1,8 @@
 import { getModelByName } from '@adminjs/prisma';
 import { prisma } from '../../prisma/prisma.service.js';
-import { ResourceWithOptions } from 'adminjs';
+import { ActionContext, ActionRequest, ResourceWithOptions } from 'adminjs';
+import AdminComponents from '../components/admin.components.js';
+import { actions } from '../../utils/values.js';
 
 export const PackageResource: ResourceWithOptions = {
   resource: {

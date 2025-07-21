@@ -3,7 +3,7 @@ import { prisma } from '../../prisma/prisma.service.js';
 import { ActionContext, ActionRequest, ResourceWithOptions } from 'adminjs';
 import AdminComponents from '../components/admin.components.js';
 import { LedgerEntryType, TransactionType } from '@prisma/client';
-import { accounts } from '../../utils/values.js';
+import { accounts, actions } from '../../utils/values.js';
 
 export const TransactionResource: ResourceWithOptions = {
   resource: {
@@ -16,6 +16,75 @@ export const TransactionResource: ResourceWithOptions = {
       icon: 'Book',
     },
     listProperties: ['type', 'fromAccount', 'toAccount', 'amount', 'note'],
+    filterProperties: ['Tenant'],
+    actions: {
+      list:{
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[1]
+          );
+          return !isSuper && hasPermission.length;
+        },
+        before: async (request: ActionRequest, context: ActionContext): Promise<ActionRequest> => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const { query = {} } = request;
+          let newQuery = { ...query };
+          if (!isSuper && tenantId) newQuery = { ...newQuery, ['filters.Tenant']: tenantId };
+          request.query = newQuery;
+          return request;
+        },
+      },
+      new: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[0]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+      edit: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[2]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+      delete: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[3]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+      bulkDelete: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[3]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+    },
+    properties: {
+      Tenant: {
+        components: {
+          filter: AdminComponents.SelectTenant,
+        },
+      },
+    },
   },
 };
 
@@ -34,18 +103,37 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
     editProperties: ['fromAccount', 'toAccount', 'amount', 'note'],
     // editProperties: ['fromAccount', 'amount', 'note', 'from', 'to'],
     showProperties: ['fromAccount', 'amount', 'note'],
+    filterProperties: ['Tenant'],
     actions: {
-      list: {
-        before: async (request, context) => {
-          if (!request.query?.filters) request.query = { ...request.query, filters: {} };
-          request.query.filters = {
-            ...request.query.filters,
-            type: TransactionType.INVESTMENT,
-          };
+      list:{
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[1]
+          );
+          return !isSuper && hasPermission.length;
+        },
+        before: async (request: ActionRequest, context: ActionContext): Promise<ActionRequest> => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const { query = {} } = request;
+          let newQuery = { ...query };
+          if (!isSuper && tenantId) newQuery = { ...newQuery, ['filters.Tenant']: tenantId };
+          newQuery = { ...newQuery, ['filters.type']: TransactionType.INVESTMENT };
+          request.query = newQuery;
           return request;
         },
       },
       new: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[0]
+          );
+          return !isSuper && hasPermission.length;
+        },
         handler: async (request: ActionRequest, response: any, context: ActionContext) => {
           try {
             const tenantId = context.currentAdmin.tenantId ?? '';
@@ -186,8 +274,43 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
           }
         },
       },
+      edit: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[2]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+      delete: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[3]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+      bulkDelete: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[3]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
     },
     properties: {
+      Tenant: {
+        components: {
+          filter: AdminComponents.SelectTenant,
+        },
+      },
       fromAccount: {
         components: {
           edit: AdminComponents.SelectShareHolder,

@@ -6,6 +6,7 @@ import { purchaseOrderSchema } from '../validations.js';
 import * as Yup from 'yup';
 import { accounts, expenseStatus, invoiceType, stockExchangeStatus } from '../../utils/values.js';
 import { LedgerEntryType, TransactionType } from '@prisma/client';
+import { actions } from '../../utils/values.js';
 
 export const PurchaseOrderResource: ResourceWithOptions = {
   resource: {
@@ -18,8 +19,36 @@ export const PurchaseOrderResource: ResourceWithOptions = {
       icon: 'ShoppingCart',
     },
     listProperties: ['orderNumber', 'partner', 'orderDate'],
+    filterProperties: ['Tenant'],
     actions: {
+      list:{
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[1]
+          );
+          return !isSuper && hasPermission.length;
+        },
+        before: async (request: ActionRequest, context: ActionContext): Promise<ActionRequest> => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const { query = {} } = request;
+          let newQuery = { ...query };
+          if (!isSuper && tenantId) newQuery = { ...newQuery, ['filters.Tenant']: tenantId };
+          request.query = newQuery;
+          return request;
+        },
+      },
       new: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[0]
+          );
+          return !isSuper && hasPermission.length;
+        },
         component: AdminComponents.NewPurchaseOrder,
         hideActionHeader: true,
         before: async (request: ActionRequest) => {
@@ -920,7 +949,43 @@ export const PurchaseOrderResource: ResourceWithOptions = {
           return response;
         },
       },
+      edit: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[2]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+      delete: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[3]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
+      bulkDelete: {
+        isAccessible: (context: ActionContext) => {
+          const isSuper = context.currentAdmin.isSuper;
+          const tenantId = context.currentAdmin?.tenantId;
+          const hasPermission = context.currentAdmin.permission.filter(
+            (p) => p.resource === context.resource.id() && p.action === actions[3]
+          );
+          return !isSuper && hasPermission.length;
+        },
+      },
     },
-    properties: {},
+    properties: {
+      Tenant: {
+        components: {
+          filter: AdminComponents.SelectTenant,
+        },
+      },
+    },
   },
 };
