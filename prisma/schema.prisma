@@ -15,30 +15,195 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model Tenant {
   id                         String                       @id @default(uuid())
-  firstName                  String?
-  lastName                   String?
-  userName                   String                       @unique
-  email                      String                       @unique
-  password                   String
-  emailVerified              Boolean                      @default(true)
+  name                       String
+  email                      String
+  phone                      String
+  address                    String
+  User                       User[]
+  Role                       Role[]
+  RolePermission             RolePermission[]
+  ProductCategory            ProductCategory[]
+  Unit                       Unit[]
+  UnitConversion             UnitConversion[]
+  Product                    Product[]
+  Variant                    Variant[]
+  Warehouse                  Warehouse[]
+  Batch                      Batch[]
+  Lot                        Lot[]
+  StockExchangeType          StockExchangeType[]
+  StockExchangeStatus        StockExchangeStatus[]
+  StockExchange              StockExchange[]
+  Manufacture                Manufacture[]
+  ManufactureInput           ManufactureInput[]
+  ManufactureOutput          ManufactureOutput[]
+  AccountType                AccountType[]
+  Account                    Account[]
+  Transaction                Transaction[]
+  LedgerEntry                LedgerEntry[]
+  Partner                    Partner[]
+  InvestmentProfile          InvestmentProfile[]
+  InvestmentProfileInvestor  InvestmentProfileInvestor[]
+  ShareHolderProfitShare     ShareHolderProfitShare[]
+  InvoiceType                InvoiceType[]
+  Invoice                    Invoice[]
+  InvoiceItem                InvoiceItem[]
+  OrderStatus                OrderStatus[]
+  PurchaseOrder              PurchaseOrder[]
+  PurchaseOrderStatusHistory PurchaseOrderStatusHistory[]
+  SaleOrder                  SaleOrder[]
+  SaleOrderStatusHistory     SaleOrderStatusHistory[]
+  ExpenseType                ExpenseType[]
+  Expense                    Expense[]
+  ExpenseStatus              ExpenseStatus[]
+  PaymentStatus              PaymentStatus[]
+  RelatedType                RelatedType[]
+  Payment                    Payment[]
+  AuditLog                   AuditLog[]
+  Setting                    Setting[]
   isActive                   Boolean                      @default(true)
   isAllowed                  Boolean                      @default(true)
   isDeleted                  Boolean                      @default(false)
   deletedAt                  DateTime?
   createdAt                  DateTime                     @default(now())
   updatedAt                  DateTime                     @updatedAt
+  Subscription               Subscription[]
+}
+
+model Subscription {
+  id                    String              @id @default(uuid())
+  startDate             DateTime
+  endDate               DateTime?
+  tenantId              String
+  packageId             String
+  subscriptionPaymentId String
+  tenant                Tenant              @relation(fields: [tenantId], references: [id])
+  package               Package             @relation(fields: [packageId], references: [id])
+  subscriptionPayment   SubscriptionPayment @relation(fields: [subscriptionPaymentId], references: [id])
+  isActive              Boolean             @default(true)
+  isAllowed             Boolean             @default(true)
+  isDeleted             Boolean             @default(false)
+  deletedAt             DateTime?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+}
+
+enum PackageType {
+  MONTHLY
+  YEARLY
+  LIFE_TIME
+}
+
+model Package {
+  id                String              @id @default(uuid())
+  name              String              @unique
+  description       String
+  imageUrl          String
+  packageType       PackageType
+  price             Decimal             @default(0)
+  discountType      DiscountType
+  discount          Decimal             @default(0.0)
+  isActive          Boolean             @default(true)
+  isAllowed         Boolean             @default(true)
+  isDeleted         Boolean             @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  Subscription      Subscription[]
+  PackagePermission PackagePermission[]
+}
+
+model PackagePermission {
+  id           String     @id @default(uuid())
+  packageId    String
+  permissionId String
+  package      Package    @relation(fields: [packageId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  price        Decimal    @default(0)
+  isActive     Boolean    @default(true)
+  isAllowed    Boolean    @default(true)
+  isDeleted    Boolean    @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+// enum SubscriptionPaymentCouponType {
+// }
+
+model SubscriptionPaymentCoupon {
+  id                  String                @id @default(uuid())
+  code                String                @unique
+  amount              Decimal               @default(0.0)
+  maxUsage            Int                   @default(0)
+  count               Int                   @default(0)
+  discountType        DiscountType
+  isActive            Boolean               @default(true)
+  isAllowed           Boolean               @default(true)
+  isDeleted           Boolean               @default(false)
+  deletedAt           DateTime?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  SubscriptionPayment SubscriptionPayment[]
+}
+
+enum SubscriptionPaymentStatus {
+  ACKNOWLEDGE
+  PENDING
+  DONE
+}
+
+enum SubscriptionPaymentFLow {
+  CASH_IN
+  CASH_OUT
+}
+
+model SubscriptionPayment {
+  id                          String                     @id @default(uuid())
+  amount                      Decimal                    @default(0.0)
+  paymentInfo                 String
+  subscriptionPaymentCouponId String?
+  subscriptionPaymentCoupon   SubscriptionPaymentCoupon? @relation(fields: [subscriptionPaymentCouponId], references: [id])
+  subscriptionPaymentStatus   SubscriptionPaymentStatus
+  subscriptionPaymentFLow     SubscriptionPaymentFLow
+  isActive                    Boolean                    @default(true)
+  isAllowed                   Boolean                    @default(true)
+  isDeleted                   Boolean                    @default(false)
+  deletedAt                   DateTime?
+  createdAt                   DateTime                   @default(now())
+  updatedAt                   DateTime                   @updatedAt
+  Subscription                Subscription[]
+}
+
+model User {
+  id                         String                       @id @default(uuid())
+  firstName                  String?
+  lastName                   String?
+  address                    String?
+  userName                   String                       @unique
+  phone                      String?                      @unique
+  email                      String                       @unique
+  password                   String
+  emailVerified              Boolean                      @default(true)
   roleId                     String?
   Role                       Role?                        @relation(fields: [roleId], references: [id])
-  PurchaseOrderStatusHistory PurchaseOrderStatusHistory[]
-  SaleOrderStatusHistory     SaleOrderStatusHistory[]
-  Payment                    Payment[]
-  AuditLog                   AuditLog[]
+  tenantId                   String?
+  Tenant                     Tenant?                      @relation(fields: [tenantId], references: [id])
+  isActive                   Boolean                      @default(true)
+  isAllowed                  Boolean                      @default(true)
+  isDeleted                  Boolean                      @default(false)
+  deletedAt                  DateTime?
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
   Partner                    Partner?                     @relation
   StockExchange              StockExchange[]
   Expense                    Expense[]
   Invoice                    Invoice[]
+  PurchaseOrderStatusHistory PurchaseOrderStatusHistory[]
+  SaleOrderStatusHistory     SaleOrderStatusHistory[]
+  Payment                    Payment[]
+  AuditLog                   AuditLog[]
 
   @@index([roleId], name: "IX_User_RoleId")
 }
@@ -55,20 +220,24 @@ model Role {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   User        User[]
+  Tenant      Tenant?          @relation(fields: [tenantId], references: [id])
+  tenantId    String?
 }
 
 model Permission {
-  id          String           @id @default(uuid())
-  resource    String // e.g., "Product", "Invoice", "User"
-  action      String // e.g., "create", "read", "update", "delete"
-  description String?
-  roles       RolePermission[]
-  isActive    Boolean          @default(true)
-  isAllowed   Boolean          @default(true)
-  isDeleted   Boolean          @default(false)
-  deletedAt   DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id                String              @id @default(uuid())
+  name              String              @unique
+  resource          String // e.g., "Product", "Invoice", "User"
+  action            String // e.g., "create", "read", "update", "delete"
+  description       String?
+  isActive          Boolean             @default(true)
+  isAllowed         Boolean             @default(true)
+  isDeleted         Boolean             @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  roles             RolePermission[]
+  PackagePermission PackagePermission[]
 
   @@unique([resource, action])
 }
@@ -85,6 +254,8 @@ model RolePermission {
   deletedAt    DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  Tenant       Tenant?    @relation(fields: [tenantId], references: [id])
+  tenantId     String?
 
   @@unique([roleId, permissionId])
 }
@@ -104,6 +275,8 @@ model ProductCategory {
   deletedAt DateTime?
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
+  Tenant    Tenant?           @relation(fields: [tenantId], references: [id])
+  tenantId  String?
 }
 
 enum UnitGroup {
@@ -131,6 +304,8 @@ model Unit {
 
   conversionsFrom UnitConversion[] @relation("FromUnit")
   conversionsTo   UnitConversion[] @relation("ToUnit")
+  Tenant          Tenant?          @relation(fields: [tenantId], references: [id])
+  tenantId        String?
 }
 
 model UnitConversion {
@@ -142,8 +317,10 @@ model UnitConversion {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  fromUnit Unit @relation("FromUnit", fields: [fromUnitId], references: [id])
-  toUnit   Unit @relation("ToUnit", fields: [toUnitId], references: [id])
+  fromUnit Unit    @relation("FromUnit", fields: [fromUnitId], references: [id])
+  toUnit   Unit    @relation("ToUnit", fields: [toUnitId], references: [id])
+  Tenant   Tenant? @relation(fields: [tenantId], references: [id])
+  tenantId String?
 
   @@unique([fromUnitId, toUnitId])
 }
@@ -161,6 +338,8 @@ model Product {
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
   Variant    Variant[]
+  Tenant     Tenant?          @relation(fields: [tenantId], references: [id])
+  tenantId   String?
 
   @@index([name])
 }
@@ -178,6 +357,8 @@ model Variant {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   StockExchange StockExchange[]
+  Tenant        Tenant?         @relation(fields: [tenantId], references: [id])
+  tenantId      String?
 }
 
 model Warehouse {
@@ -193,6 +374,8 @@ model Warehouse {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   StockExchange StockExchange[]
+  Tenant        Tenant?         @relation(fields: [tenantId], references: [id])
+  tenantId      String?
 }
 
 model Batch {
@@ -207,6 +390,8 @@ model Batch {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   StockExchange   StockExchange[]
+  Tenant          Tenant?         @relation(fields: [tenantId], references: [id])
+  tenantId        String?
 }
 
 model Lot {
@@ -219,6 +404,8 @@ model Lot {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   StockExchange StockExchange[]
+  Tenant        Tenant?         @relation(fields: [tenantId], references: [id])
+  tenantId      String?
 }
 
 // enum StockExchangeType {
@@ -243,7 +430,9 @@ model StockExchangeType {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  stocks StockExchange[]
+  stocks   StockExchange[]
+  Tenant   Tenant?         @relation(fields: [tenantId], references: [id])
+  tenantId String?
 }
 
 model StockExchangeStatus {
@@ -258,6 +447,8 @@ model StockExchangeStatus {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   stocks      StockExchange[]
+  Tenant      Tenant?         @relation(fields: [tenantId], references: [id])
+  tenantId    String?
 }
 
 model StockExchange {
@@ -287,6 +478,8 @@ model StockExchange {
   stockExchangeStatusId String?
   StockExchangeType     StockExchangeType?   @relation(fields: [stockExchangeTypeId], references: [id])
   stockExchangeTypeId   String?
+  Tenant                Tenant?              @relation(fields: [tenantId], references: [id])
+  tenantId              String?
 
   @@index([stockExchangeTypeId, warehouseId])
 }
@@ -306,8 +499,10 @@ model Manufacture {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  inputs  ManufactureInput[]
-  outputs ManufactureOutput[]
+  inputs   ManufactureInput[]
+  outputs  ManufactureOutput[]
+  Tenant   Tenant?             @relation(fields: [tenantId], references: [id])
+  tenantId String?
 }
 
 model ManufactureInput {
@@ -322,6 +517,8 @@ model ManufactureInput {
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  Tenant        Tenant?       @relation(fields: [tenantId], references: [id])
+  tenantId      String?
 }
 
 model ManufactureOutput {
@@ -336,6 +533,8 @@ model ManufactureOutput {
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  Tenant        Tenant?       @relation(fields: [tenantId], references: [id])
+  tenantId      String?
 }
 
 // Accounts
@@ -360,6 +559,8 @@ model AccountType {
   deletedAt   DateTime?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  Tenant      Tenant?       @relation(fields: [tenantId], references: [id])
+  tenantId    String?
 }
 
 enum AccountHolderType {
@@ -393,6 +594,8 @@ model Account {
   partnerId             String?
   investmentProfileId   String?
   InvestmentProfile     InvestmentProfile? @relation(fields: [investmentProfileId], references: [id])
+  Tenant                Tenant?            @relation(fields: [tenantId], references: [id])
+  tenantId              String?
 }
 
 enum TransactionType {
@@ -455,6 +658,8 @@ model Transaction {
   LedgerEntry       LedgerEntry[]
   Invoice           Invoice?        @relation(fields: [invoiceId], references: [id])
   invoiceId         String?
+  Tenant            Tenant?         @relation(fields: [tenantId], references: [id])
+  tenantId          String?
 }
 
 enum LedgerEntryType {
@@ -478,6 +683,8 @@ model LedgerEntry {
   deletedAt     DateTime?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+  Tenant        Tenant?         @relation(fields: [tenantId], references: [id])
+  tenantId      String?
 }
 
 enum PartnerType {
@@ -509,6 +716,8 @@ model Partner {
   Account                   Account[]
   Invoice                   Invoice[]
   InvestmentProfileInvestor InvestmentProfileInvestor[]
+  Tenant                    Tenant?                     @relation(fields: [tenantId], references: [id])
+  tenantId                  String?
 }
 
 // FINANCE MANAGEMENT
@@ -541,6 +750,8 @@ model InvestmentProfile {
   updatedAt                 DateTime                    @updatedAt
   InvestmentProfileInvestor InvestmentProfileInvestor[]
   Account                   Account[]
+  Tenant                    Tenant?                     @relation(fields: [tenantId], references: [id])
+  tenantId                  String?
 }
 
 model InvestmentProfileInvestor {
@@ -556,6 +767,9 @@ model InvestmentProfileInvestor {
   deletedAt           DateTime?
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
+  Tenant              Tenant?           @relation(fields: [tenantId], references: [id])
+  tenantId            String?
+
   @@unique([investmentProfileId, investorId])
 }
 
@@ -572,6 +786,8 @@ model ShareHolderProfitShare {
   deletedAt    DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  Tenant       Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId     String?
 }
 
 model InvoiceType {
@@ -585,6 +801,8 @@ model InvoiceType {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   Invoice     Invoice[]
+  Tenant      Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId    String?
 }
 
 model Invoice {
@@ -616,6 +834,8 @@ model Invoice {
   saleOrderId     String?
   Expense         Expense[]
   userId          String?
+  Tenant          Tenant?        @relation(fields: [tenantId], references: [id])
+  tenantId        String?
 }
 
 enum DiscountType {
@@ -641,6 +861,8 @@ model InvoiceItem {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   Expense       Expense[]
+  Tenant        Tenant?        @relation(fields: [tenantId], references: [id])
+  tenantId      String?
 
   @@index([invoiceId])
 }
@@ -658,6 +880,8 @@ model OrderStatus {
   updatedAt                  DateTime                     @updatedAt
   PurchaseOrderStatusHistory PurchaseOrderStatusHistory[]
   SaleOrderStatusHistory     SaleOrderStatusHistory[]
+  Tenant                     Tenant?                      @relation(fields: [tenantId], references: [id])
+  tenantId                   String?
 }
 
 model PurchaseOrder {
@@ -675,6 +899,8 @@ model PurchaseOrder {
   updatedAt                  DateTime                     @updatedAt
   invoices                   Invoice[]
   PurchaseOrderStatusHistory PurchaseOrderStatusHistory[]
+  Tenant                     Tenant?                      @relation(fields: [tenantId], references: [id])
+  tenantId                   String?
 }
 
 model PurchaseOrderStatusHistory {
@@ -693,6 +919,8 @@ model PurchaseOrderStatusHistory {
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  Tenant        Tenant?       @relation(fields: [tenantId], references: [id])
+  tenantId      String?
 }
 
 model SaleOrder {
@@ -710,6 +938,8 @@ model SaleOrder {
   updatedAt              DateTime                 @updatedAt
   invoices               Invoice[]
   SaleOrderStatusHistory SaleOrderStatusHistory[]
+  Tenant                 Tenant?                  @relation(fields: [tenantId], references: [id])
+  tenantId               String?
 }
 
 model SaleOrderStatusHistory {
@@ -728,6 +958,8 @@ model SaleOrderStatusHistory {
   deletedAt   DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  Tenant      Tenant?     @relation(fields: [tenantId], references: [id])
+  tenantId    String?
 }
 
 model ExpenseType {
@@ -742,6 +974,8 @@ model ExpenseType {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   Expense     Expense[]
+  Tenant      Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId    String?
 }
 
 model Expense {
@@ -767,6 +1001,8 @@ model Expense {
   Invoice         Invoice?      @relation(fields: [invoiceId], references: [id])
   invoiceItemId   String?
   InvoiceItem     InvoiceItem?  @relation(fields: [invoiceItemId], references: [id])
+  Tenant          Tenant?       @relation(fields: [tenantId], references: [id])
+  tenantId        String?
 }
 
 model ExpenseStatus {
@@ -781,6 +1017,8 @@ model ExpenseStatus {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   Expense     Expense[]
+  Tenant      Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId    String?
 }
 
 // enum PaymentStatus {
@@ -805,6 +1043,8 @@ model PaymentStatus {
   color       String? // Optional: UI indicator (e.g., "#facc15")
 
   payments Payment[] @relation("StatusRelation")
+  Tenant   Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId String?
 }
 
 model RelatedType {
@@ -814,6 +1054,8 @@ model RelatedType {
   description String?
 
   payments Payment[] @relation("RelatedTypeRelation")
+  Tenant   Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId String?
 }
 
 model Payment {
@@ -837,6 +1079,8 @@ model Payment {
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  Tenant        Tenant?       @relation(fields: [tenantId], references: [id])
+  tenantId      String?
 }
 
 // PLATFORM MANAGEMENT
@@ -855,6 +1099,8 @@ model AuditLog {
   performedBy   User?   @relation(fields: [performedById], references: [id])
 
   createdAt DateTime @default(now())
+  Tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  tenantId  String?
 }
 
 // enum SettingType {
@@ -913,4 +1159,6 @@ model Setting {
   deletedAt   DateTime?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+  Tenant      Tenant?         @relation(fields: [tenantId], references: [id])
+  tenantId    String?
 }

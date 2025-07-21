@@ -71,6 +71,7 @@ export interface ExpenseType {
 export interface PurchaseOrderPayload {
   orderNumber: string;
   selectedSupplier: SelectedValue | null;
+  selectedInvestor: SelectedValue | null;
   note: string;
   stockItems: StockItemInput[];
   expenses: ExpenseInput[];
@@ -90,6 +91,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
 
   const [showModal, setShowModal] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
+  const [selectedInvestmentProfile, setSelectedInvestmentProfile] = useState<string | null>(null);
   const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [stockItems, setStockItems] = useState<StockItemInput[]>([]);
@@ -110,6 +112,20 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   }, []);
 
   // Fetchers for data
+  const fetchInvestmentProfile = async (): Promise<Partner[]> => {
+    const res = await fetch('/admin/api/resources/InvestmentProfile/actions/list', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: 1, perPage: 100 }),
+    });
+    const result = await res.json();
+    return result.records.map((r: any) => ({
+      id: r.params.id,
+      name: r.params.name,
+      type: r.params.type,
+    }));
+  };
+
   const fetchPartners = async (): Promise<Partner[]> => {
     const res = await fetch('/admin/api/resources/Partner/actions/list', {
       method: 'POST',
@@ -542,6 +558,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     try {
       const payload = {
         orderNumber,
+        selectedInvestmentProfile,
         selectedSupplier,
         note,
         stockItems,
@@ -572,6 +589,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
   const handleOrder = async () => {
     const payload = {
       orderNumber,
+      selectedInvestmentProfile,
       selectedSupplier,
       note,
       stockItems,
@@ -594,6 +612,8 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
 
   return {
     orderNumber,
+    selectedInvestmentProfile,
+    setSelectedInvestmentProfile,
     selectedSupplier,
     setSelectedSupplier,
     note,
@@ -613,6 +633,7 @@ export const useNewPurchaseOrder = (props: BasePropertyProps) => {
     globalDiscount,
     setGlobalDiscount,
     globalDiscountType,
+    fetchInvestmentProfile,
     fetchPartners,
     fetchProducts,
     fetchVariants,

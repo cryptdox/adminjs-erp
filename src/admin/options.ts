@@ -47,6 +47,12 @@ import { UnitResource } from './resources/unit.config.adminjs.js';
 import { UnitConversionResource } from './resources/unit-conversion.config.adminjs.js';
 import { InvestmentProfileResource } from './resources/investment-profile.config.adminjs.js';
 import { InvestmentProfileInvestorResource } from './resources/invetment-profile-investor.config.adminjs.js';
+import { TenantResource } from './resources/tenant.config.adminjs.js';
+import { SubscriptionResource } from './resources/subscription.config.adminjs.js';
+import { PackageResource } from './resources/package.config.adminjs.js';
+import { PackagePermissionResource } from './resources/package-permission.config.adminjs.js';
+import { SubscriptionPaymentCouponResource } from './resources/subscription-payment-coupon.config.adminjs.js';
+import { SubscriptionPaymentResource } from './resources/subscription-payment.config.adminjs.js';
 
 const options: AdminJSOptions = {
   componentLoader,
@@ -67,6 +73,12 @@ const options: AdminJSOptions = {
     RoleResource,
     PermissionResource,
     RolePermissionResource,
+    TenantResource,
+    SubscriptionResource,
+    PackageResource,
+    PackagePermissionResource,
+    SubscriptionPaymentCouponResource,
+    SubscriptionPaymentResource,
     UnitResource,
     UnitConversionResource,
     ProductCategoryResource,

@@ -117,33 +117,39 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                 },
               });
 
-              const orgCashAccount = await tx.account.findFirst({
+              const investmentProfileCashAccount = await tx.account.findFirst({
                 where: {
                   name: {
                     contains: accounts[0].name,
                     mode: 'insensitive',
                   },
-                  isOrganizationAccount: accounts[0].isOrganizationAccount,
+                  accountHolderType: 'INVESTMENT_PROFILE',
+                  investmentProfileId: payload.selectedInvestmentProfile.value,
+                  // isOrganizationAccount: accounts[0].isOrganizationAccount,
                 },
               });
 
-              const orgInventoryAccount = await tx.account.findFirst({
+              const investmentProfileInventoryAccount = await tx.account.findFirst({
                 where: {
                   name: {
                     contains: accounts[2].name,
                     mode: 'insensitive',
                   },
-                  isOrganizationAccount: accounts[0].isOrganizationAccount,
+                  accountHolderType: 'INVESTMENT_PROFILE',
+                  investmentProfileId: payload.selectedInvestmentProfile.value,
+                  // isOrganizationAccount: accounts[0].isOrganizationAccount,
                 },
               });
 
-              const orgPayableAccount = await tx.account.findFirst({
+              const investmentProfilePayableAccount = await tx.account.findFirst({
                 where: {
                   name: {
                     contains: accounts[4].name,
                     mode: 'insensitive',
                   },
-                  isOrganizationAccount: accounts[4].isOrganizationAccount,
+                  accountHolderType: 'INVESTMENT_PROFILE',
+                  investmentProfileId: payload.selectedInvestmentProfile.value,
+                  // isOrganizationAccount: accounts[4].isOrganizationAccount,
                 },
               });
 
@@ -187,8 +193,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
               const companyTransaction = await tx.transaction.create({
                 data: {
                   amount: processStockItems().totalStockPrice,
-                  fromAccount: { connect: { id: orgInventoryAccount.id } },
-                  toAccount: { connect: { id: orgPayableAccount.id } },
+                  fromAccount: { connect: { id: investmentProfileInventoryAccount.id } },
+                  toAccount: { connect: { id: investmentProfilePayableAccount.id } },
                   type: TransactionType.SUPPLIER_PAYMENT,
                 },
               });
@@ -197,7 +203,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                 data: {
                   transaction: { connect: { id: companyTransaction.id } },
                   amount: processStockItems().totalStockPrice,
-                  account: { connect: { id: orgInventoryAccount.id } },
+                  account: { connect: { id: investmentProfileInventoryAccount.id } },
                   type: LedgerEntryType.DEBIT,
                 },
               });
@@ -206,7 +212,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                 data: {
                   transaction: { connect: { id: companyTransaction.id } },
                   amount: processStockItems().totalStockPrice,
-                  account: { connect: { id: orgPayableAccount.id } },
+                  account: { connect: { id: investmentProfilePayableAccount.id } },
                   type: LedgerEntryType.CREDIT,
                 },
               });
@@ -242,8 +248,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                 const companyPaidTransaction = await tx.transaction.create({
                   data: {
                     amount: processStockItems().totalPaid,
-                    fromAccount: { connect: { id: orgCashAccount.id } },
-                    toAccount: { connect: { id: orgPayableAccount.id } },
+                    fromAccount: { connect: { id: investmentProfileCashAccount.id } },
+                    toAccount: { connect: { id: investmentProfilePayableAccount.id } },
                     type: TransactionType.SUPPLIER_PAYMENT,
                   },
                 });
@@ -252,7 +258,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                   data: {
                     transaction: { connect: { id: companyPaidTransaction.id } },
                     amount: processStockItems().totalPaid,
-                    account: { connect: { id: orgPayableAccount.id } },
+                    account: { connect: { id: investmentProfilePayableAccount.id } },
                     type: LedgerEntryType.DEBIT,
                   },
                 });
@@ -261,7 +267,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                   data: {
                     transaction: { connect: { id: companyPaidTransaction.id } },
                     amount: processStockItems().totalPaid,
-                    account: { connect: { id: orgCashAccount.id } },
+                    account: { connect: { id: investmentProfileCashAccount.id } },
                     type: LedgerEntryType.CREDIT,
                   },
                 });
@@ -387,8 +393,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                     const companyTransaction = await tx.transaction.create({
                       data: {
                         amount: e.totalAmount,
-                        fromAccount: { connect: { id: orgCashAccount.id } },
-                        toAccount: { connect: { id: orgPayableAccount.id } },
+                        fromAccount: { connect: { id: investmentProfileCashAccount.id } },
+                        toAccount: { connect: { id: investmentProfilePayableAccount.id } },
                         type: TransactionType.EXPENSE,
                         // firstTransaction: { connect: { id: shareHolderTransaction.id } },
                       },
@@ -398,7 +404,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                       data: {
                         transaction: { connect: { id: companyTransaction.id } },
                         amount: e.totalAmount,
-                        account: { connect: { id: orgCashAccount.id } },
+                        account: { connect: { id: investmentProfileCashAccount.id } },
                         type: LedgerEntryType.DEBIT,
                       },
                     });
@@ -407,7 +413,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                       data: {
                         transaction: { connect: { id: companyTransaction.id } },
                         amount: e.totalAmount,
-                        account: { connect: { id: orgPayableAccount.id } },
+                        account: { connect: { id: investmentProfilePayableAccount.id } },
                         type: LedgerEntryType.CREDIT,
                       },
                     });
@@ -480,8 +486,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                       const companyTransaction = await tx.transaction.create({
                         data: {
                           amount: e.paidAmount,
-                          fromAccount: { connect: { id: orgPayableAccount.id } },
-                          toAccount: { connect: { id: orgCashAccount.id } },
+                          fromAccount: { connect: { id: investmentProfilePayableAccount.id } },
+                          toAccount: { connect: { id: investmentProfileCashAccount.id } },
                           type: TransactionType.EXPENSE,
                           // firstTransaction: { connect: { id: shareHolderTransaction.id } },
                         },
@@ -491,7 +497,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                         data: {
                           transaction: { connect: { id: companyTransaction.id } },
                           amount: e.paidAmount,
-                          account: { connect: { id: orgCashAccount.id } },
+                          account: { connect: { id: investmentProfileCashAccount.id } },
                           type: LedgerEntryType.DEBIT,
                         },
                       });
@@ -500,7 +506,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                         data: {
                           transaction: { connect: { id: companyTransaction.id } },
                           amount: e.paidAmount,
-                          account: { connect: { id: orgCashAccount.id } },
+                          account: { connect: { id: investmentProfileCashAccount.id } },
                           type: LedgerEntryType.CREDIT,
                         },
                       });
@@ -567,8 +573,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                 const companyTransaction = await tx.transaction.create({
                   data: {
                     amount: exp.totalAmount,
-                    fromAccount: { connect: { id: orgCashAccount.id } },
-                    toAccount: { connect: { id: orgPayableAccount.id } },
+                    fromAccount: { connect: { id: investmentProfileCashAccount.id } },
+                    toAccount: { connect: { id: investmentProfilePayableAccount.id } },
                     type: TransactionType.EXPENSE,
                     // firstTransaction: { connect: { id: shareHolderTransaction.id } },
                   },
@@ -578,7 +584,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                   data: {
                     transaction: { connect: { id: companyTransaction.id } },
                     amount: exp.totalAmount,
-                    account: { connect: { id: orgCashAccount.id } },
+                    account: { connect: { id: investmentProfileCashAccount.id } },
                     type: LedgerEntryType.DEBIT,
                   },
                 });
@@ -587,7 +593,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                   data: {
                     transaction: { connect: { id: companyTransaction.id } },
                     amount: exp.totalAmount,
-                    account: { connect: { id: orgPayableAccount.id } },
+                    account: { connect: { id: investmentProfilePayableAccount.id } },
                     type: LedgerEntryType.CREDIT,
                   },
                 });
@@ -660,8 +666,8 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                   const companyTransaction = await tx.transaction.create({
                     data: {
                       amount: exp.paidAmount,
-                      fromAccount: { connect: { id: orgPayableAccount.id } },
-                      toAccount: { connect: { id: orgCashAccount.id } },
+                      fromAccount: { connect: { id: investmentProfilePayableAccount.id } },
+                      toAccount: { connect: { id: investmentProfileCashAccount.id } },
                       type: TransactionType.EXPENSE,
                       // firstTransaction: { connect: { id: shareHolderTransaction.id } },
                     },
@@ -671,7 +677,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                     data: {
                       transaction: { connect: { id: companyTransaction.id } },
                       amount: exp.paidAmount,
-                      account: { connect: { id: orgCashAccount.id } },
+                      account: { connect: { id: investmentProfileCashAccount.id } },
                       type: LedgerEntryType.DEBIT,
                     },
                   });
@@ -680,7 +686,7 @@ export const PurchaseOrderResource: ResourceWithOptions = {
                     data: {
                       transaction: { connect: { id: companyTransaction.id } },
                       amount: exp.paidAmount,
-                      account: { connect: { id: orgCashAccount.id } },
+                      account: { connect: { id: investmentProfileCashAccount.id } },
                       type: LedgerEntryType.CREDIT,
                     },
                   });

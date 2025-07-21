@@ -32,6 +32,9 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                   type: {
                     connect: { name: accountTypeData[0].name },
                   },
+                  InvestmentProfile: {
+                    connect: { id: investmentProfile.id },
+                  },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
                 },
               });
@@ -40,6 +43,9 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                   name: `InvP-${investmentProfile.name} - ${accounts[1].name}`,
                   type: {
                     connect: { name: accountTypeData[0].name },
+                  },
+                  InvestmentProfile: {
+                    connect: { id: investmentProfile.id },
                   },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
                 },
@@ -50,6 +56,9 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                   type: {
                     connect: { name: accountTypeData[0].name },
                   },
+                  InvestmentProfile: {
+                    connect: { id: investmentProfile.id },
+                  },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
                 },
               });
@@ -59,6 +68,9 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                   type: {
                     connect: { name: accountTypeData[0].name },
                   },
+                  InvestmentProfile: {
+                    connect: { id: investmentProfile.id },
+                  },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
                 },
               });
@@ -67,6 +79,21 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                   name: `InvP-${investmentProfile.name} - ${accounts[4].name}`,
                   type: {
                     connect: { name: accountTypeData[1].name },
+                  },
+                  InvestmentProfile: {
+                    connect: { id: investmentProfile.id },
+                  },
+                  accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
+                },
+              });
+              await tx.account.create({
+                data: {
+                  name: `InvP-${investmentProfile.name} - ${accounts[14].name}`,
+                  type: {
+                    connect: { name: accountTypeData[2].name },
+                  },
+                  InvestmentProfile: {
+                    connect: { id: investmentProfile.id },
                   },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
                 },

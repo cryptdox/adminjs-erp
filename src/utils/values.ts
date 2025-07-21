@@ -1,3 +1,5 @@
+import { DiscountType, PackageType } from '@prisma/client';
+
 export const invoiceType = [
   { name: 'STOCK_SALES', description: 'Sales of stockExchange items' },
   { name: 'STOCK_PURCHASE', description: 'Purchase of stockExchange items' },
@@ -114,20 +116,26 @@ export const accountTypeData = [
 ];
 
 export const resources = [
+  'Tenant',
+  'Subscription',
+  'Package',
+  'PackagePermission',
+  'SubscriptionPayment',
   'User',
   'Role',
   'Permission',
   'RolePermission',
-  'Product',
   'ProductCategory',
+  'Unit',
+  'UnitConversion',
+  'Product',
   'Variant',
   'Warehouse',
-  'Stock',
-  'stockExchangeStatus',
-  'StockExchangeType',
-  'stockExchangeStatusHistory',
-  'Lot',
   'Batch',
+  'Lot',
+  'StockExchangeType',
+  'StockExchangeStatus',
+  'StockExchange',
   'Manufacture',
   'ManufactureInput',
   'ManufactureOutput',
@@ -135,15 +143,13 @@ export const resources = [
   'Account',
   'Transaction',
   'LedgerEntry',
-  'InvestmentProfileInvestor',
-  'InvestmentProfile',
   'Partner',
+  'InvestmentProfile',
+  'InvestmentProfileInvestor',
   'ShareHolderProfitShare',
   'InvoiceType',
-  'InvoiceStatus',
   'Invoice',
   'InvoiceItem',
-  'InvoiceStatusHistory',
   'OrderStatus',
   'PurchaseOrder',
   'PurchaseOrderStatusHistory',
@@ -152,14 +158,13 @@ export const resources = [
   'ExpenseType',
   'Expense',
   'ExpenseStatus',
-  'ExpenseStatusHistory',
   'PaymentStatus',
   'RelatedType',
   'Payment',
   'AuditLog',
-  'Setting',
   'SettingType',
   'SettingOption',
+  'Setting',
 ];
 
 // Standard actions
@@ -215,4 +220,216 @@ export const userAllowedActions: Record<string, string[]> = {
   // Read-only on basic lookup/config
   Setting: ['read'],
   Account: ['read'],
+};
+
+export const tenantModules = {
+  userManagement: ['User', 'Role', 'RolePermission'],
+
+  inventoryManagement: [
+    'ProductCategory',
+    'Unit',
+    'UnitConversion',
+    'Product',
+    'Variant',
+    'Warehouse',
+    'Batch',
+    'Lot',
+    'StockExchangeType',
+    'StockExchangeStatus',
+    'StockExchange',
+  ],
+
+  manufacturing: ['Manufacture', 'ManufactureInput', 'ManufactureOutput'],
+
+  accounting: ['AccountType', 'Account', 'Transaction', 'LedgerEntry'],
+
+  partners: ['Partner', 'InvestmentProfile', 'InvestmentProfileInvestor', 'ShareHolderProfitShare'],
+
+  invoicing: ['InvoiceType', 'Invoice', 'InvoiceItem'],
+
+  orders: ['OrderStatus', 'PurchaseOrder', 'PurchaseOrderStatusHistory', 'SaleOrder', 'SaleOrderStatusHistory'],
+
+  expenses: ['ExpenseType', 'Expense', 'ExpenseStatus'],
+
+  payments: ['PaymentStatus', 'RelatedType', 'Payment'],
+
+  audit: ['AuditLog'],
+
+  settings: ['Setting'],
+};
+
+const basicModule = [...tenantModules.userManagement, ...tenantModules.inventoryManagement];
+const manufacturingProModule = [
+  ...tenantModules.userManagement,
+  ...tenantModules.inventoryManagement,
+  ...tenantModules.manufacturing,
+  ...tenantModules.orders,
+];
+const accountingSuiteModule = [
+  ...tenantModules.accounting,
+  ...tenantModules.partners,
+  ...tenantModules.payments,
+  ...tenantModules.expenses,
+  ...tenantModules.audit,
+];
+
+const fullModule = [
+  ...tenantModules.accounting,
+  ...tenantModules.audit,
+  ...tenantModules.expenses,
+  ...tenantModules.inventoryManagement,
+  ...tenantModules.invoicing,
+  ...tenantModules.manufacturing,
+  ...tenantModules.orders,
+  ...tenantModules.partners,
+  ...tenantModules.payments,
+  ...tenantModules.settings,
+  ...tenantModules.userManagement,
+];
+
+export const packages = [
+  {
+    name: 'Free Trial',
+    description: 'Essential features including user management and inventory control.',
+    imageUrl: 'https://example.com/images/basic-package.png',
+    price: 29.99,
+    discountType: DiscountType.PERCENT,
+    discount: 5.0,
+    packageType: PackageType.MONTHLY,
+    modules: manufacturingProModule,
+  },
+  {
+    name: 'Basic (MONTHLY)',
+    description: 'Essential features including user management and inventory control.',
+    imageUrl: 'https://example.com/images/basic-package.png',
+    price: 29.99,
+    discountType: DiscountType.PERCENT,
+    discount: 5.0,
+    packageType: PackageType.MONTHLY,
+    modules: basicModule,
+  },
+  {
+    name: 'Basic (YEARLY)',
+    description: 'Essential features including user management and inventory control.',
+    imageUrl: 'https://example.com/images/basic-package.png',
+    price: 29.99,
+    discountType: DiscountType.PERCENT,
+    discount: 5.0,
+    packageType: PackageType.YEARLY,
+    modules: basicModule,
+  },
+  {
+    name: 'Basic (LIFE_TIME)',
+    description: 'Essential features including user management and inventory control.',
+    imageUrl: 'https://example.com/images/basic-package.png',
+    price: 29.99,
+    discountType: DiscountType.PERCENT,
+    discount: 5.0,
+    packageType: PackageType.LIFE_TIME,
+    modules: basicModule,
+  },
+  {
+    name: 'Manufacturing Pro (MONTHLY)',
+    description: 'Advanced manufacturing and order management features plus basic modules.',
+    imageUrl: 'https://example.com/images/manufacturing-pro.png',
+    price: 79.99,
+    discountType: DiscountType.PERCENT,
+    discount: 10.0,
+    packageType: PackageType.MONTHLY,
+    modules: manufacturingProModule,
+  },
+  {
+    name: 'Manufacturing Pro (YEARLY)',
+    description: 'Advanced manufacturing and order management features plus basic modules.',
+    imageUrl: 'https://example.com/images/manufacturing-pro.png',
+    price: 79.99,
+    discountType: DiscountType.PERCENT,
+    discount: 10.0,
+    packageType: PackageType.YEARLY,
+    modules: manufacturingProModule,
+  },
+  {
+    name: 'Manufacturing Pro (LIFE_TIME)',
+    description: 'Advanced manufacturing and order management features plus basic modules.',
+    imageUrl: 'https://example.com/images/manufacturing-pro.png',
+    price: 79.99,
+    discountType: DiscountType.PERCENT,
+    discount: 10.0,
+    packageType: PackageType.LIFE_TIME,
+    modules: manufacturingProModule,
+  },
+  {
+    name: 'Accounting Suite (MONTHLY)',
+    description: 'Full accounting, partners, payments, expenses and audit features.',
+    imageUrl: 'https://example.com/images/accounting-suite.png',
+    price: 99.99,
+    discountType: DiscountType.AMOUNT,
+    discount: 20.0,
+    packageType: PackageType.MONTHLY,
+    modules: accountingSuiteModule,
+  },
+  {
+    name: 'Accounting Suite (YEARLY)',
+    description: 'Full accounting, partners, payments, expenses and audit features.',
+    imageUrl: 'https://example.com/images/accounting-suite.png',
+    price: 99.99,
+    discountType: DiscountType.AMOUNT,
+    discount: 20.0,
+    packageType: PackageType.YEARLY,
+    modules: accountingSuiteModule,
+  },
+  {
+    name: 'Accounting Suite (LIFE_TIME)',
+    description: 'Full accounting, partners, payments, expenses and audit features.',
+    imageUrl: 'https://example.com/images/accounting-suite.png',
+    price: 99.99,
+    discountType: DiscountType.AMOUNT,
+    discount: 20.0,
+    packageType: PackageType.LIFE_TIME,
+    modules: accountingSuiteModule,
+  },
+  {
+    name: 'Full ERP (MONTHLY)',
+    description: 'Complete ERP system with access to all modules and features.',
+    imageUrl: 'https://example.com/images/full-erp.png',
+    price: 199.99,
+    discountType: DiscountType.PERCENT,
+    discount: 15.0,
+    packageType: PackageType.MONTHLY,
+    modules: fullModule,
+  },
+  {
+    name: 'Full ERP (YEARLY)',
+    description: 'Complete ERP system with access to all modules and features.',
+    imageUrl: 'https://example.com/images/full-erp.png',
+    price: 199.99,
+    discountType: DiscountType.PERCENT,
+    discount: 15.0,
+    packageType: PackageType.YEARLY,
+    modules: fullModule,
+  },
+  {
+    name: 'Full ERP (LIFE_TIME)',
+    description: 'Complete ERP system with access to all modules and features.',
+    imageUrl: 'https://example.com/images/full-erp.png',
+    price: 199.99,
+    discountType: DiscountType.PERCENT,
+    discount: 15.0,
+    packageType: PackageType.LIFE_TIME,
+    modules: fullModule,
+  },
+];
+
+export const fullAccessLifeTimeTenantData = {
+  name: 'Full Access',
+  email: 'full.access@example.com',
+  phone: '+8801300000000',
+  address: '123 Main St, Springfield, IL 62704, USA',
+};
+
+export const freeTrialTenantData = {
+  name: 'Free Trial',
+  email: 'free.trial@example.com',
+  phone: '+8801300000001',
+  address: '123 Main St, Springfield, IL 62704, USA',
 };

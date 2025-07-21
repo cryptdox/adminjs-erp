@@ -31,19 +31,17 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
       icon: 'Book',
     },
     listProperties: ['fromAccount', 'amount', 'note'],
-    editProperties: ['fromAccount', 'amount', 'note'],
+    editProperties: ['fromAccount', 'toAccount', 'amount', 'note'],
     // editProperties: ['fromAccount', 'amount', 'note', 'from', 'to'],
     showProperties: ['fromAccount', 'amount', 'note'],
     actions: {
       list: {
         before: async (request, context) => {
           if (!request.query?.filters) request.query = { ...request.query, filters: {} };
-
           request.query.filters = {
             ...request.query.filters,
             type: TransactionType.INVESTMENT,
           };
-
           return request;
         },
       },
@@ -51,20 +49,23 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
         handler: async (request: ActionRequest, response: any, context: ActionContext) => {
           try {
             await prisma.$transaction(async (tx) => {
-              const orgAssetAccount = await tx.account.findFirst({
+              const investmentProfileAssetAccount = await tx.account.findFirst({
                 where: {
                   name: {
                     contains: 'Cash',
                     mode: 'insensitive',
                   },
-                  isOrganizationAccount: accounts[0].isOrganizationAccount,
+                  investmentProfileId: request.payload.toAccount
                 },
               });
 
-              const orgEquityAccount = await tx.account.findFirst({
+              const investmentProfileEquityAccount = await tx.account.findFirst({
                 where: {
-                  name: accounts[14].name,
-                  isOrganizationAccount: accounts[0].isOrganizationAccount,
+                  name: {
+                    contains: accounts[14].name,
+                    mode: 'insensitive',
+                  },
+                  investmentProfileId: request.payload.toAccount
                 },
               });
 
@@ -118,8 +119,8 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
               const companyTransaction = await tx.transaction.create({
                 data: {
                   amount: request.payload.amount,
-                  fromAccount: { connect: { id: orgEquityAccount.id } },
-                  toAccount: { connect: { id: orgAssetAccount.id } },
+                  fromAccount: { connect: { id: investmentProfileEquityAccount.id } },
+                  toAccount: { connect: { id: investmentProfileAssetAccount.id } },
                   type: TransactionType.RECEIVE_INVESTMENT,
                   firstTransaction: { connect: { id: shareHolderTransaction.id } },
                 },
@@ -129,7 +130,7 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
                 data: {
                   transaction: { connect: { id: companyTransaction.id } },
                   amount: request.payload.amount,
-                  account: { connect: { id: orgAssetAccount.id } },
+                  account: { connect: { id: investmentProfileAssetAccount.id } },
                   type: LedgerEntryType.DEBIT,
                 },
               });
@@ -138,7 +139,7 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
                 data: {
                   transaction: { connect: { id: companyTransaction.id } },
                   amount: request.payload.amount,
-                  account: { connect: { id: orgEquityAccount.id } },
+                  account: { connect: { id: investmentProfileEquityAccount.id } },
                   type: LedgerEntryType.CREDIT,
                 },
               });
@@ -171,6 +172,11 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
       fromAccount: {
         components: {
           edit: AdminComponents.SelectShareHolder,
+        },
+      },
+      toAccount: {
+        components: {
+          edit: AdminComponents.SelectInvestmentProfile,
         },
       },
       // from: {

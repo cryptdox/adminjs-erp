@@ -17,6 +17,8 @@ type Variant = { id: string; name: string };
 const NewPurchaseOrder = (props: BasePropertyProps) => {
   const {
     orderNumber,
+    selectedInvestmentProfile,
+    setSelectedInvestmentProfile,
     selectedSupplier,
     setSelectedSupplier,
     note,
@@ -36,6 +38,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
     globalDiscount,
     setGlobalDiscount,
     globalDiscountType,
+    fetchInvestmentProfile,
     fetchPartners,
     fetchProducts,
     fetchVariants,
@@ -66,6 +69,7 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
 
   console.log("errors: ", errors)
 
+  const [investmentProfile, setInvestmentProfile] = useState<{ id: string; name: string; type: string; }[]>([]);
   const [partners, setPartners] = useState<{ id: string; name: string; type: string; }[]>([]);
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
   const [variantMap, setVariantMap] = useState<Record<string, Variant[]>>({});
@@ -75,13 +79,15 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
 
   useEffect(() => {
     const loadData = async () => {
-      const [partnersData, productsData, warehousesData, expenseTypesData] =
+      const [investmentProfileData, partnersData, productsData, warehousesData, expenseTypesData] =
         await Promise.all([
+          fetchInvestmentProfile(),
           fetchPartners(),
           fetchProducts(),
           fetchWarehouses(),
           fetchExpenseTypes(),
         ]);
+      setInvestmentProfile(investmentProfileData)
       setPartners(partnersData);
       setProducts(productsData);
       setWarehouses(warehousesData);
@@ -116,11 +122,31 @@ const NewPurchaseOrder = (props: BasePropertyProps) => {
 
       {/* Order Number and Supplier */}
       <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4 !mb-6">
-        <div>
+        {/* <div>
           <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Order Number</Label>
           <div className="!w-full !text-md !font-semibold !p-2 !rounded-md !bg-indigo-50 !text-indigo-800 border border-indigo-200 shadow-sm">
             {orderNumber}
           </div>
+        </div> */}
+
+        <div>
+          <Label className="!text-sm !font-semibold !text-gray-500 !mb-1 !block">Investment Profile</Label>
+          <Select
+            value={selectedInvestmentProfile || ""}
+            onChange={(selected) => setSelectedInvestmentProfile(selected || "")}
+            options={investmentProfile
+              // .filter((sup) => sup.type == 'SUPPLIER')
+              .map((profile) => ({
+                value: profile.id,
+                label: profile.name,
+              }))}
+
+            isDisabled={!partners.length}
+            isLoading={!partners.length}
+            placeholder="Select Investment Profile"
+            className="!w-full custom-partner-select !border !border-slate-300 !rounded-md !shadow-sm !transition focus:!ring-2 focus:!ring-indigo-500"
+          />
+          {errors.selectedSupplier && <p className="!pt-2 !text-red-600">{errors.selectedSupplier}</p>}
         </div>
 
         <div>

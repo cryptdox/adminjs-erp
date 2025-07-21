@@ -58,6 +58,7 @@ export const purchaseStockItemSchema = Yup.object({
 
 export const purchaseOrderSchema = Yup.object({
   orderNumber: Yup.string().required('Order number is required'),
+  selectedInvestmentProfile: selectedValueSchema.required('Investment Profile is required'),
   selectedSupplier: selectedValueSchema.required('Supplier is required'),
   note: Yup.string().nullable(),
   stockItems: Yup.array().of(purchaseStockItemSchema).min(1, 'At least one stockExchange item is required').required(),

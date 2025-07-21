@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "reset:schema": "ts-node prisma/scripts/reset-schema.js",
     "build": "nest build",
     "build:css": "npx tailwindcss -i ./public/styles/index.css -o ./public/styles/output.css --watch",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
