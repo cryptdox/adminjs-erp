@@ -10,7 +10,20 @@ export const SubscriptionResource: ResourceWithOptions = {
   options: {
     navigation: {
       name: 'HRMS',
-      icon: 'Users'
-    }
+      icon: 'Users',
+    },
+    listProperties: ['tenant', 'package', 'startDate', 'endDate'],
+    showProperties: ['tenant', 'package', 'startDate', 'endDate'],
+    actions: {
+      new: {
+        isVisible: false,
+      },
+      edit: {
+        isVisible: false,
+      },
+      delete: {
+        isVisible: false,
+      },
+    },
   },
 };

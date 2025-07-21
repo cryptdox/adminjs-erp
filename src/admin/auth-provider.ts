@@ -14,6 +14,11 @@ const provider = new DefaultAuthProvider({
     if (!user) return null;
     let matched = await bcrypt.compare(password, user.password);
     if (matched) {
+      const isSuper = user?.isSuper;
+      const tenantId = user?.tenantId;
+      //
+      // CHECK TENANT< SUBSCRIPTION PACKAGE AND SUPER HERE
+      //
       let permission = await prisma.permission.findMany({
         where: {
           roles: {
@@ -23,7 +28,7 @@ const provider = new DefaultAuthProvider({
           },
         },
       });
-      return { email, user, permission };
+      return { email, isSuper, tenantId, user, permission };
     }
     return null;
   },

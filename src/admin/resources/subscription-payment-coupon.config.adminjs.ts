@@ -11,6 +11,17 @@ export const SubscriptionPaymentCouponResource: ResourceWithOptions = {
     navigation: {
       name: 'HRMS',
       icon: 'Users'
-    }
+    },
+    listProperties: ['name', 'code', 'amount', 'maxUsage', 'count'],
+    showProperties: ['name', 'code', 'amount', 'maxUsage', 'count'],
+    editProperties: ['name', 'code', 'amount', 'maxUsage'],
+    actions: {
+      edit: {
+        isAccessible: false,
+      },
+      delete: {
+        isVisible: false,
+      },
+    },
   },
 };

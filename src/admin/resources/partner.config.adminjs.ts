@@ -21,6 +21,7 @@ export const PartnerResource: ResourceWithOptions = {
       new: {
         handler: async (request: ActionRequest, response: any, context: ActionContext) => {
           try {
+            const tenantId = context.currentAdmin.tenantId ?? '';
             await prisma.$transaction(async (tx) => {
               const partner = await tx.partner.create({
                 data: request.payload as Partner,
@@ -31,9 +32,12 @@ export const PartnerResource: ResourceWithOptions = {
                   type: {
                     connect: { name: accountTypeData[0].name },
                   },
-                  Partner:{
-                    connect:{id: partner.id}
-                  }
+                  Partner: {
+                    connect: { id: partner.id },
+                  },
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
               await tx.account.create({
@@ -42,9 +46,12 @@ export const PartnerResource: ResourceWithOptions = {
                   type: {
                     connect: { name: accountTypeData[0].name },
                   },
-                  Partner:{
-                    connect:{id: partner.id}
-                  }
+                  Partner: {
+                    connect: { id: partner.id },
+                  },
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
               await tx.account.create({
@@ -53,9 +60,12 @@ export const PartnerResource: ResourceWithOptions = {
                   type: {
                     connect: { name: accountTypeData[0].name },
                   },
-                  Partner:{
-                    connect:{id: partner.id}
-                  }
+                  Partner: {
+                    connect: { id: partner.id },
+                  },
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
               await tx.account.create({
@@ -64,9 +74,12 @@ export const PartnerResource: ResourceWithOptions = {
                   type: {
                     connect: { name: accountTypeData[0].name },
                   },
-                  Partner:{
-                    connect:{id: partner.id}
-                  }
+                  Partner: {
+                    connect: { id: partner.id },
+                  },
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
               await tx.account.create({
@@ -75,9 +88,12 @@ export const PartnerResource: ResourceWithOptions = {
                   type: {
                     connect: { name: accountTypeData[1].name },
                   },
-                  Partner:{
-                    connect:{id: partner.id}
-                  }
+                  Partner: {
+                    connect: { id: partner.id },
+                  },
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
             });

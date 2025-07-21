@@ -69,7 +69,8 @@ export class AppService
       // }
 
       const initDBStatus = this.commonService.initDBStatus();
-      if (initDBStatus == 'RESET') await this.commonService.resetDB();
+      // if (initDBStatus == 'RESET')
+      await this.commonService.initializeDBData();
 
       console.log(`The module has been started. abir signatured!`);
     } catch (error) {

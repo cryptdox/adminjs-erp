@@ -11,6 +11,19 @@ export const SubscriptionPaymentResource: ResourceWithOptions = {
     navigation: {
       name: 'HRMS',
       icon: 'Users'
-    }
+    },
+    listProperties: ['subscriptionPaymentFLow', 'subscriptionPaymentStatus', 'amount', 'subscriptionPaymentCoupon'],
+    showProperties:['package', 'permission'],
+    actions: {
+      new: {
+        isVisible: false,
+      },
+      edit: {
+        isAccessible: false,
+      },
+      delete: {
+        isAccessible: false,
+      },
+    },
   },
 };

@@ -48,6 +48,7 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
       new: {
         handler: async (request: ActionRequest, response: any, context: ActionContext) => {
           try {
+            const tenantId = context.currentAdmin.tenantId ?? '';
             await prisma.$transaction(async (tx) => {
               const investmentProfileAssetAccount = await tx.account.findFirst({
                 where: {
@@ -55,7 +56,7 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
                     contains: 'Cash',
                     mode: 'insensitive',
                   },
-                  investmentProfileId: request.payload.toAccount
+                  investmentProfileId: request.payload.toAccount,
                 },
               });
 
@@ -65,7 +66,7 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
                     contains: accounts[14].name,
                     mode: 'insensitive',
                   },
-                  investmentProfileId: request.payload.toAccount
+                  investmentProfileId: request.payload.toAccount,
                 },
               });
 
@@ -91,6 +92,9 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
 
               const shareHolderTransaction = await tx.transaction.create({
                 data: {
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                   amount: request.payload.amount,
                   fromAccount: { connect: { id: shareHolderAssetAccount.id } },
                   toAccount: { connect: { id: shareHolderReceivableAccount.id } },
@@ -100,6 +104,9 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
 
               await tx.ledgerEntry.create({
                 data: {
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                   transaction: { connect: { id: shareHolderTransaction.id } },
                   amount: request.payload.amount,
                   account: { connect: { id: shareHolderReceivableAccount.id } },
@@ -109,6 +116,9 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
 
               await tx.ledgerEntry.create({
                 data: {
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                   transaction: { connect: { id: shareHolderTransaction.id } },
                   amount: request.payload.amount,
                   account: { connect: { id: shareHolderAssetAccount.id } },
@@ -118,6 +128,9 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
 
               const companyTransaction = await tx.transaction.create({
                 data: {
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                   amount: request.payload.amount,
                   fromAccount: { connect: { id: investmentProfileEquityAccount.id } },
                   toAccount: { connect: { id: investmentProfileAssetAccount.id } },
@@ -128,6 +141,9 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
 
               await tx.ledgerEntry.create({
                 data: {
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                   transaction: { connect: { id: companyTransaction.id } },
                   amount: request.payload.amount,
                   account: { connect: { id: investmentProfileAssetAccount.id } },
@@ -137,6 +153,9 @@ export const InvestmentTransactionResource: ResourceWithOptions = {
 
               await tx.ledgerEntry.create({
                 data: {
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                   transaction: { connect: { id: companyTransaction.id } },
                   amount: request.payload.amount,
                   account: { connect: { id: investmentProfileEquityAccount.id } },

@@ -21,6 +21,7 @@ export const InvestmentProfileResource: ResourceWithOptions = {
       new: {
         handler: async (request: ActionRequest, response: any, context: ActionContext) => {
           try {
+            const tenantId = context.currentAdmin.tenantId ?? '';
             await prisma.$transaction(async (tx) => {
               const investmentProfile = await tx.investmentProfile.create({
                 data: request.payload as InvestmentProfile,
@@ -36,6 +37,9 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                     connect: { id: investmentProfile.id },
                   },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
               await tx.account.create({
@@ -48,6 +52,9 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                     connect: { id: investmentProfile.id },
                   },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
               await tx.account.create({
@@ -60,6 +67,9 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                     connect: { id: investmentProfile.id },
                   },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
               await tx.account.create({
@@ -72,6 +82,9 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                     connect: { id: investmentProfile.id },
                   },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
               await tx.account.create({
@@ -84,6 +97,9 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                     connect: { id: investmentProfile.id },
                   },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
               await tx.account.create({
@@ -96,6 +112,9 @@ export const InvestmentProfileResource: ResourceWithOptions = {
                     connect: { id: investmentProfile.id },
                   },
                   accountHolderType: AccountHolderType.INVESTMENT_PROFILE,
+                  Tenant: {
+                    connect: { id: tenantId },
+                  },
                 },
               });
             });

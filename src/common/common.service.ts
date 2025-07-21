@@ -20,8 +20,18 @@ import {
   stockExchangeStatus,
   stockExchangeType,
   userAllowedActions,
+  units,
+  orderStatus,
+  settingsType,
 } from '../utils/values.js';
-import { DiscountType, Prisma, PrismaClient, SubscriptionPaymentFLow, SubscriptionPaymentStatus } from '@prisma/client';
+import {
+  DiscountType,
+  Prisma,
+  PrismaClient,
+  SubscriptionPaymentFLow,
+  SubscriptionPaymentStatus,
+  UnitGroup,
+} from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/client';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -76,18 +86,18 @@ export class CommonService {
     return await bcrypt.compare(password, hash);
   }
 
-  async resetDB() {
+  async initializeDBData() {
     await this.prisma.$transaction(
       async (tx) => {
         const exists = await tx.user.count();
         if (exists) return;
         await this.insertUserRolePackagePermission(tx);
-        await this.createFullAccessLifeTimeTenant(tx)
-        await this.createFreeTrialTenantData(tx)
-        // await this.createInventoryInfo(tx);
-        // await this.createAccountingInfo(tx);
-        // await this.createOrderInfo(tx);
-        // await this.createSettingsInfo(tx);
+        await this.insertInventorySupportInfo(tx);
+        await this.insertAccountingSupportInfo(tx);
+        await this.insertOrderSupportInfo(tx);
+        await this.insertSettingsSupportInfo(tx);
+        await this.createFullAccessLifeTimeTenant(tx);
+        await this.createFreeTrialTenantData(tx);
       },
       {
         maxWait: 10000, // 10 seconds max wait to connect to prisma
@@ -162,57 +172,46 @@ export class CommonService {
     // 5. Operation on ALl Permissions
     const allPermissions = await tx.permission.findMany();
 
-    for (const permission of allPermissions) {
-      // 5.1. Set ADMIN Role Permissions
-      const adminRole = await tx.role.findFirst({
-        where: { name: 'ADMIN' },
-      });
-      if (adminRole) {
-        await tx.rolePermission.upsert({
-          where: {
-            roleId_permissionId: {
-              roleId: adminRole.id,
-              permissionId: permission.id,
-            },
-          },
-          update: {},
-          create: {
+    // 5.1. Set ADMIN Role Permissions
+    const adminRole = await tx.role.findFirst({
+      where: { name: 'ADMIN' },
+    });
+    if (adminRole) {
+      for (const permission of allPermissions) {
+        await tx.rolePermission.create({
+          data: {
             roleId: adminRole.id,
             permissionId: permission.id,
           },
         });
-        // 5.1.1 Create admin user
-        const hashedPassword = await this.bcryptPassword('admin');
-        await tx.user.create({
-          data: {
-            userName: 'admin',
-            email: 'admin@example.com',
-            password: hashedPassword,
-            roleId: adminRole.id,
-          },
-        });
       }
+      // 5.1.1 Create admin user
+      const hashedPassword = await this.bcryptPassword('admin');
+      await tx.user.create({
+        data: {
+          userName: 'admin',
+          email: 'admin@example.com',
+          password: hashedPassword,
+          roleId: adminRole.id,
+          isSuper: true,
+        },
+      });
 
       // 5.2. Set MANAGER Role Permissions
       const managerRole = await tx.role.findFirst({
         where: { name: 'MANAGER' },
       });
       if (managerRole) {
-        const allowedActions = managerAllowedActions[permission.resource];
-        if (allowedActions?.includes(permission.action)) {
-          await tx.rolePermission.upsert({
-            where: {
-              roleId_permissionId: {
+        for (const permission of allPermissions) {
+          const allowedActions = managerAllowedActions[permission.resource];
+          if (allowedActions?.includes(permission.action)) {
+            await tx.rolePermission.create({
+              data: {
                 roleId: managerRole.id,
                 permissionId: permission.id,
               },
-            },
-            update: {},
-            create: {
-              roleId: managerRole.id,
-              permissionId: permission.id,
-            },
-          });
+            });
+          }
         }
       }
 
@@ -221,24 +220,111 @@ export class CommonService {
         where: { name: 'USER' },
       });
       if (userRole) {
-        const allowedActions = userAllowedActions[permission.resource];
-        if (allowedActions?.includes(permission.action)) {
-          await tx.rolePermission.upsert({
-            where: {
-              roleId_permissionId: {
+        for (const permission of allPermissions) {
+          const allowedActions = userAllowedActions[permission.resource];
+          if (allowedActions?.includes(permission.action)) {
+            await tx.rolePermission.create({
+              data: {
                 roleId: userRole.id,
                 permissionId: permission.id,
               },
-            },
-            update: {},
-            create: {
-              roleId: userRole.id,
-              permissionId: permission.id,
-            },
-          });
+            });
+          }
         }
       }
     }
+  }
+
+  async insertInventorySupportInfo(
+    tx: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >
+  ) {
+    // UNIT SEED
+    await tx.unit.createMany({
+      data: units,
+    });
+
+    // Fetch units for conversion linking
+    const [kg, g, liter, ml] = await Promise.all([
+      tx.unit.findUnique({ where: { name: 'kg' } }),
+      tx.unit.findUnique({ where: { name: 'g' } }),
+      tx.unit.findUnique({ where: { name: 'liter' } }),
+      tx.unit.findUnique({ where: { name: 'ml' } }),
+    ]);
+
+    // UNIT CONVERSIONS
+    await tx.unitConversion.createMany({
+      data: [
+        { fromUnitId: kg.id, toUnitId: g.id, multiplier: 1000, note: '1 kg = 1000 g' },
+        { fromUnitId: g.id, toUnitId: kg.id, multiplier: 0.001, note: '1 g = 0.001 kg' },
+        { fromUnitId: liter.id, toUnitId: ml.id, multiplier: 1000, note: '1 L = 1000 mL' },
+        { fromUnitId: ml.id, toUnitId: liter.id, multiplier: 0.001, note: '1 mL = 0.001 L' },
+      ],
+    });
+  }
+
+  async insertAccountingSupportInfo(
+    tx: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >
+  ) {
+    await Promise.all(accountTypeData.map((data) => tx.accountType.create({ data })));
+  }
+
+  async insertOrderSupportInfo(
+    tx: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >
+  ) {
+    // Seed default invoice types
+    await tx.invoiceType.createMany({
+      data: invoiceType,
+      skipDuplicates: true,
+    });
+
+    // Seed default order statuses (for both purchase and sale orders)
+    await tx.orderStatus.createMany({
+      data: orderStatus,
+      skipDuplicates: true,
+    });
+
+    // Seed default expense types
+    await tx.expenseType.createMany({
+      data: expenseType,
+      skipDuplicates: true,
+    });
+
+    // Seed default expense statuses
+    await tx.expenseStatus.createMany({
+      data: expenseStatus,
+      skipDuplicates: true,
+    });
+
+    await tx.stockExchangeType.createMany({
+      data: stockExchangeType,
+      skipDuplicates: true,
+    });
+
+    await tx.stockExchangeStatus.createMany({
+      data: stockExchangeStatus,
+      skipDuplicates: true,
+    });
+  }
+
+  async insertSettingsSupportInfo(
+    tx: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >
+  ) {
+    await tx.settingType.createMany({
+      data: settingsType,
+      skipDuplicates: true,
+    });
   }
 
   async createFullAccessLifeTimeTenant(
@@ -308,7 +394,7 @@ export class CommonService {
 
     const role = await tx.role.create({
       data: {
-        name: 'ADMIN',
+        name: 'ADMIN of ' + tenant.name,
         description: 'Tenant Administrator',
         Tenant: {
           connect: { id: tenant.id },
@@ -316,14 +402,14 @@ export class CommonService {
       },
     });
 
-    for (const permission of fullERPLifeTimePackage.PackagePermission) {
+    for (const packagePermission of fullERPLifeTimePackage.PackagePermission) {
       await tx.rolePermission.create({
         data: {
           role: {
             connect: { id: role.id },
           },
           permission: {
-            connect: { id: permission.id },
+            connect: { id: packagePermission.permissionId },
           },
           Tenant: {
             connect: { id: tenant.id },
@@ -349,6 +435,7 @@ export class CommonService {
         },
       },
     });
+    await this.insertTenantDummyInfo(tx, tenant.id);
   }
 
   async createFreeTrialTenantData(
@@ -357,7 +444,7 @@ export class CommonService {
       '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
     >
   ) {
-    const fullERPLifeTimePackage = await tx.package.findUnique({
+    const freeTrialPackage = await tx.package.findUnique({
       where: {
         name: packages[0].name,
       },
@@ -407,7 +494,7 @@ export class CommonService {
           connect: { id: tenant.id },
         },
         package: {
-          connect: { id: fullERPLifeTimePackage.id },
+          connect: { id: freeTrialPackage.id },
         },
         startDate: new Date(),
         endDate: getDateAfterDays(),
@@ -419,7 +506,7 @@ export class CommonService {
 
     const role = await tx.role.create({
       data: {
-        name: 'ADMIN',
+        name: 'ADMIN of ' + tenant.name,
         description: 'Tenant Administrator',
         Tenant: {
           connect: { id: tenant.id },
@@ -427,14 +514,14 @@ export class CommonService {
       },
     });
 
-    for (const permission of fullERPLifeTimePackage.PackagePermission) {
+    for (const packagePermission of freeTrialPackage.PackagePermission) {
       await tx.rolePermission.create({
         data: {
           role: {
             connect: { id: role.id },
           },
           permission: {
-            connect: { id: permission.id },
+            connect: { id: packagePermission.permissionId },
           },
           Tenant: {
             connect: { id: tenant.id },
@@ -460,55 +547,28 @@ export class CommonService {
         },
       },
     });
+    await this.insertTenantDummyInfo(tx, tenant.id);
   }
 
-  async createInventoryInfo(
+  async insertTenantDummyInfo(
     tx: Omit<
       PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
       '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
-    >
+    >,
+    tenantId: string
   ) {
     // PRODUCT CATEGORY SEED
     await tx.productCategory.createMany({
       data: [
-        { name: 'Mobile' },
-        { name: 'Accessories', parentId: undefined },
-        { name: 'Charger', parentId: undefined },
+        { name: 'Mobile', tenantId },
+        { name: 'Accessories', parentId: undefined, tenantId },
+        { name: 'Charger', parentId: undefined, tenantId },
       ],
     });
 
     // Fetch categories for foreign key use
     const [mobileCategory] = await tx.productCategory.findMany({
-      where: { name: 'Mobile' },
-    });
-
-    // UNIT SEED
-    await tx.unit.createMany({
-      data: [
-        { name: 'kg', label: 'Kilogram', group: 'WEIGHT', isBase: true },
-        { name: 'g', label: 'Gram', group: 'WEIGHT' },
-        { name: 'liter', label: 'Liter', group: 'VOLUME', isBase: true },
-        { name: 'ml', label: 'Milliliter', group: 'VOLUME' },
-        { name: 'pcs', label: 'Piece', group: 'COUNT', isBase: true },
-      ],
-    });
-
-    // Fetch units for conversion linking
-    const [kg, g, liter, ml] = await Promise.all([
-      tx.unit.findUnique({ where: { name: 'kg' } }),
-      tx.unit.findUnique({ where: { name: 'g' } }),
-      tx.unit.findUnique({ where: { name: 'liter' } }),
-      tx.unit.findUnique({ where: { name: 'ml' } }),
-    ]);
-
-    // UNIT CONVERSIONS
-    await tx.unitConversion.createMany({
-      data: [
-        { fromUnitId: kg.id, toUnitId: g.id, multiplier: 1000, note: '1 kg = 1000 g' },
-        { fromUnitId: g.id, toUnitId: kg.id, multiplier: 0.001, note: '1 g = 0.001 kg' },
-        { fromUnitId: liter.id, toUnitId: ml.id, multiplier: 1000, note: '1 L = 1000 mL' },
-        { fromUnitId: ml.id, toUnitId: liter.id, multiplier: 0.001, note: '1 mL = 0.001 L' },
-      ],
+      where: { name: 'Mobile', tenantId },
     });
 
     // PRODUCTS
@@ -517,6 +577,10 @@ export class CommonService {
         name: 'Samsung Galaxy S24',
         sku: 'SGS24-BLK-128',
         categoryId: mobileCategory.id,
+        tenantId,
+        // Tenant:{
+        //   connect:{id: tenantId}
+        // }
       },
     });
 
@@ -527,54 +591,27 @@ export class CommonService {
           name: 'BLACK-128',
           productId: product.id,
           attributes: { name: 'BLACK-128', color: 'Black', storage: '128GB' },
+          tenantId,
         },
         {
           name: 'SILVER-256',
           productId: product.id,
           attributes: { name: 'SILVER-256', color: 'Silver', storage: '256GB' },
+          tenantId,
         },
       ],
     });
 
     await tx.warehouse.createMany({
       data: [
-        { name: 'Main Warehouse', location: 'Dhaka HQ', contact: '017xxxxxxxx' },
-        { name: 'Backup Warehouse', location: 'Chattogram' },
+        { name: 'Main Warehouse', location: 'Dhaka HQ', contact: '017xxxxxxxx', tenantId },
+        { name: 'Backup Warehouse', location: 'Chattogram', tenantId },
       ],
       skipDuplicates: true,
     });
 
-    await tx.stockExchangeType.createMany({
-      data: stockExchangeType,
-      skipDuplicates: true,
-    });
-
-    await tx.stockExchangeStatus.createMany({
-      data: stockExchangeStatus,
-      skipDuplicates: true,
-    });
-  }
-
-  async createAccountingInfo(
-    tx: Omit<
-      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
-      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
-    >
-  ) {
-    // Seed default account types (basic chart of accounts)
-    // await tx.accountType.createMany({
-    //   data: [
-    //     { name: 'ASSET', description: 'Cash, bank, and other assets' },
-    //     { name: 'LIABILITY', description: 'Loans, payables, etc.' },
-    //     { name: 'EQUITY', description: 'Owner capital and retained earnings' },
-    //     { name: 'REVENUE', description: 'Sales income and other revenues' },
-    //     { name: 'EXPENSE', description: 'Operating and administrative expenses' },
-    //   ],
-    //   skipDuplicates: true,
-    // });
-
     // 1. Create parent account types
-    const parents = await Promise.all(accountTypeData.map((data) => tx.accountType.create({ data })));
+    const parents = await tx.accountType.findMany();
 
     // 2. Create Default Accounts
     // ✅ Map the name to ID for later use
@@ -591,140 +628,12 @@ export class CommonService {
           typeId: accountTypeMap[account.type],
           isOrganizationAccount: account.isOrganizationAccount,
           isDefault: true,
+          tenantId,
         },
       });
     }
 
-    // Map parent names to their generated IDs
-    // const parentMap = parents.reduce(
-    //   (acc, parent) => {
-    //     acc[parent.name] = parent.id;
-    //     return acc;
-    //   },
-    //   {} as Record<string, string>
-    // );
-
-    // // 2. Create child account types linked to parents
-    // await tx.accountType.createMany({
-    //   data: [
-    //     // Children of ASSET
-    //     { name: 'Current Asset', parentId: parentMap['ASSET'] },
-    //     { name: 'Fixed Asset', parentId: parentMap['ASSET'] },
-
-    //     // Children of LIABILITY
-    //     { name: 'Current Liability', parentId: parentMap['LIABILITY'] },
-    //     { name: 'Long-term Liability', parentId: parentMap['LIABILITY'] },
-
-    //     // Children of EQUITY
-    //     { name: 'Owner Capital', parentId: parentMap['EQUITY'] },
-    //     { name: 'Retained Earnings', parentId: parentMap['EQUITY'] },
-
-    //     // Children of INCOME
-    //     { name: 'Sales Revenue', parentId: parentMap['INCOME'] },
-    //     { name: 'Service Revenue', parentId: parentMap['INCOME'] },
-
-    //     // Children of EXPENSE
-    //     { name: 'Salary Expense', parentId: parentMap['EXPENSE'] },
-    //     { name: 'Rent Expense', parentId: parentMap['EXPENSE'] },
-    //     { name: 'Utilities Expense', parentId: parentMap['EXPENSE'] },
-    //   ],
-    //   skipDuplicates: true,
-    // });
-
-    // const currentLiability = await tx.accountType.create({
-    //   data: { name: 'Current Liability', parentId: parentMap['LIABILITY'] },
-    // });
-
-    // const longTermLiability = await tx.accountType.create({
-    //   data: { name: 'Long-term Liability', parentId: parentMap['LIABILITY'] },
-    // });
-
-    // // Children of Current Liability
-    // const accountsPayable = await tx.accountType.create({
-    //   data: { name: 'Accounts Payable', parentId: currentLiability.id },
-    // });
-
-    // await tx.accountType.createMany({
-    //   data: [
-    //     { name: "Supplier Payable ['LIABILITY']", parentId: accountsPayable.id },
-    //     { name: "Other Payable ['LIABILITY']", parentId: accountsPayable.id },
-    //     { name: "Accrued Expenses ['LIABILITY']", parentId: currentLiability.id },
-    //     { name: "Notes Payable ['LIABILITY']", parentId: longTermLiability.id },
-    //     { name: "Mortgage Payable ['LIABILITY']", parentId: longTermLiability.id },
-    //   ],
-    // });
-  }
-
-  async createOrderInfo(
-    tx: Omit<
-      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
-      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
-    >
-  ) {
-    // Seed default invoice types
-    await tx.invoiceType.createMany({
-      data: invoiceType,
-      skipDuplicates: true,
-    });
-
-    // Seed default order statuses (for both purchase and sale orders)
-    await tx.orderStatus.createMany({
-      data: [
-        { name: 'pending', displayName: 'Pending', description: 'Order placed but not fulfilled' },
-        { name: 'partial', displayName: 'Partially Fulfilled', description: 'Some items processed' },
-        { name: 'completed', displayName: 'Completed', description: 'Order fully completed' },
-        { name: 'cancelled', displayName: 'Cancelled', description: 'Order cancelled' },
-      ],
-      skipDuplicates: true,
-    });
-
-    // Seed default expense types
-    await tx.expenseType.createMany({
-      data: expenseType,
-      skipDuplicates: true,
-    });
-
-    // Seed default expense statuses
-    await tx.expenseStatus.createMany({
-      data: expenseStatus,
-      skipDuplicates: true,
-    });
-
-    // Seed default payment statuses
-    await tx.paymentStatus.createMany({
-      data: paymentStatus,
-      skipDuplicates: true,
-    });
-
-    // Seed related types for polymorphic relation in payments
-    await tx.relatedType.createMany({
-      data: [
-        { code: 'PURCHASE_ORDER', label: 'Purchase Order', description: 'Payment related to purchase order' },
-        { code: 'SALE_ORDER', label: 'Sale Order', description: 'Payment related to sale order' },
-        { code: 'EXPENSE', label: 'Expense', description: 'Payment related to an expense' },
-      ],
-      skipDuplicates: true,
-    });
-  }
-
-  async createSettingsInfo(
-    tx: Omit<
-      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
-      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
-    >
-  ) {
     // Seed common setting types with optional UI component hints
-    await tx.settingType.createMany({
-      data: [
-        { name: 'TEXT', label: 'Text', description: 'Plain text field', uiComponent: 'input' },
-        { name: 'NUMBER', label: 'Number', description: 'Numeric value field', uiComponent: 'number' },
-        { name: 'BOOLEAN', label: 'Yes/No', description: 'True or false toggle', uiComponent: 'switch' },
-        { name: 'DATE', label: 'Date', description: 'Date picker field', uiComponent: 'date' },
-        { name: 'JSON', label: 'JSON', description: 'Structured JSON data', uiComponent: 'textarea' },
-        { name: 'SELECT', label: 'Dropdown', description: 'Choose one from options', uiComponent: 'select' },
-      ],
-      skipDuplicates: true,
-    });
 
     const selectType = await tx.settingType.findFirst({
       where: { name: 'SELECT' },
@@ -739,6 +648,7 @@ export class CommonService {
           group: 'finance',
           description: 'Preferred system currency',
           typeId: selectType.id,
+          tenantId,
         },
       });
 
@@ -801,30 +711,17 @@ export class CommonService {
       const type = await tx.settingType.findFirst({ where: { name: item.typeName } });
 
       if (type) {
-        await tx.setting.upsert({
-          where: { key: item.key },
-          update: {
-            value: item.value,
-            description: item.description,
-            group: item.group,
-            typeId: type.id,
-          },
-          create: {
+        await tx.setting.create({
+          data: {
             key: item.key,
             value: item.value,
             description: item.description,
             group: item.group,
             typeId: type.id,
+            tenantId,
           },
         });
       }
     }
   }
-
-  async createInfo(
-    tx: Omit<
-      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
-      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
-    >
-  ) {}
 }

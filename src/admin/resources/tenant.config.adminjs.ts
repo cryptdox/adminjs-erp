@@ -11,6 +11,19 @@ export const TenantResource: ResourceWithOptions = {
     navigation: {
       name: 'HRMS',
       icon: 'Users'
+    },
+    listProperties: ['name', 'email', 'phone', 'address'],
+    showProperties: ['name', 'email', 'phone', 'address'],
+    actions:{
+      new:{
+        isVisible: false
+      },
+      edit:{
+        isVisible: false
+      },
+      delete:{
+        isVisible: false
+      }
     }
   },
 };

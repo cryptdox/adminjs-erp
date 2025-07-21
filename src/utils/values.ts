@@ -1,4 +1,4 @@
-import { DiscountType, PackageType } from '@prisma/client';
+import { DiscountType, PackageType, UnitGroup } from '@prisma/client';
 
 export const invoiceType = [
   { name: 'STOCK_SALES', description: 'Sales of stockExchange items' },
@@ -6,6 +6,13 @@ export const invoiceType = [
   { name: 'OTHER_SALES', description: 'Service or non-stockExchange sales' },
   { name: 'OTHER_PURCHASE', description: 'Service or non-stockExchange purchases' },
   { name: 'EXPENSE', description: 'Recorded expense invoices' },
+];
+
+export const expenseType = [
+  { name: 'PURCHASE', displayName: 'Purchase Order', description: 'Cost related to stockExchange purchase' },
+  { name: 'SALE', displayName: 'Sales Related', description: 'Sales operational expense' },
+  { name: 'RETURN', displayName: 'Returned Goods', description: 'Expense from customer returns' },
+  { name: 'OTHER', displayName: 'Other Expense', description: 'Miscellaneous operational expense' },
 ];
 
 export const stockExchangeType = [
@@ -30,13 +37,6 @@ export const stockExchangeStatus = [
   { name: 'MISSING', displayName: 'Missing' },
 ];
 
-export const expenseType = [
-  { name: 'PURCHASE', displayName: 'Purchase Order', description: 'Cost related to stockExchange purchase' },
-  { name: 'SALE', displayName: 'Sales Related', description: 'Sales operational expense' },
-  { name: 'RETURN', displayName: 'Returned Goods', description: 'Expense from customer returns' },
-  { name: 'OTHER', displayName: 'Other Expense', description: 'Miscellaneous operational expense' },
-];
-
 export const expenseStatus = [
   { name: 'PENDING', displayName: 'Pending', description: 'Expense yet to be processed' },
   { name: 'PARTIAL', displayName: 'Partially Paid', description: 'Expense partially covered' },
@@ -50,6 +50,13 @@ export const paymentStatus = [
   { code: 'FAILED', label: 'Failed', description: 'Payment attempt failed', color: '#f87171' },
   { code: 'CANCELLED', label: 'Cancelled', description: 'Payment was cancelled', color: '#a3a3a3' },
   { code: 'REFUNDED', label: 'Refunded', description: 'Payment returned', color: '#60a5fa' },
+];
+
+export const orderStatus = [
+  { name: 'PENDING', displayName: 'Pending', description: 'Order placed but not fulfilled' },
+  { name: 'PARTIAL', displayName: 'Partially Fulfilled', description: 'Some items processed' },
+  { name: 'COMPLETED', displayName: 'Completed', description: 'Order fully completed' },
+  { name: 'CANCELLED', displayName: 'Cancelled', description: 'Order cancelled' },
 ];
 
 export const accounts = [
@@ -115,6 +122,23 @@ export const accountTypeData = [
   },
 ];
 
+export const units = [
+  { name: 'kg', label: 'Kilogram', group: UnitGroup.WEIGHT, isBase: true, step: 1 },
+  { name: 'g', label: 'Gram', group: UnitGroup.WEIGHT, step: 10 },
+  { name: 'liter', label: 'Liter', group: UnitGroup.VOLUME, isBase: true, step: 1 },
+  { name: 'ml', label: 'Milliliter', group: UnitGroup.VOLUME, step: 10 },
+  { name: 'pcs', label: 'Piece', group: UnitGroup.COUNT, isBase: true, step: 1 },
+];
+
+export const settingsType = [
+  { name: 'TEXT', label: 'Text', description: 'Plain text field', uiComponent: 'input' },
+  { name: 'NUMBER', label: 'Number', description: 'Numeric value field', uiComponent: 'number' },
+  { name: 'BOOLEAN', label: 'Yes/No', description: 'True or false toggle', uiComponent: 'switch' },
+  { name: 'DATE', label: 'Date', description: 'Date picker field', uiComponent: 'date' },
+  { name: 'JSON', label: 'JSON', description: 'Structured JSON data', uiComponent: 'textarea' },
+  { name: 'SELECT', label: 'Dropdown', description: 'Choose one from options', uiComponent: 'select' },
+];
+
 export const resources = [
   'Tenant',
   'Subscription',
@@ -158,8 +182,6 @@ export const resources = [
   'ExpenseType',
   'Expense',
   'ExpenseStatus',
-  'PaymentStatus',
-  'RelatedType',
   'Payment',
   'AuditLog',
   'SettingType',
@@ -183,7 +205,7 @@ export const managerAllowedActions: Record<string, string[]> = {
   Product: ['read', 'update'],
   ProductCategory: ['read'],
   Variant: ['read'],
-  Stock: ['read'],
+  StockExchange: ['read'],
   Warehouse: ['read'],
   Partner: ['read', 'update'],
 
@@ -211,7 +233,7 @@ export const userAllowedActions: Record<string, string[]> = {
   // Can view products & stockExchange
   Product: ['read'],
   Variant: ['read'],
-  Stock: ['read'],
+  StockExchange: ['read'],
   Warehouse: ['read'],
 
   // Can view own profile
@@ -225,33 +247,21 @@ export const userAllowedActions: Record<string, string[]> = {
 export const tenantModules = {
   userManagement: ['User', 'Role', 'RolePermission'],
 
-  inventoryManagement: [
-    'ProductCategory',
-    'Unit',
-    'UnitConversion',
-    'Product',
-    'Variant',
-    'Warehouse',
-    'Batch',
-    'Lot',
-    'StockExchangeType',
-    'StockExchangeStatus',
-    'StockExchange',
-  ],
+  inventoryManagement: ['ProductCategory', 'Product', 'Variant', 'Warehouse', 'Batch', 'Lot', 'StockExchange'],
 
   manufacturing: ['Manufacture', 'ManufactureInput', 'ManufactureOutput'],
 
-  accounting: ['AccountType', 'Account', 'Transaction', 'LedgerEntry'],
+  accounting: ['Account', 'Transaction', 'LedgerEntry'],
 
   partners: ['Partner', 'InvestmentProfile', 'InvestmentProfileInvestor', 'ShareHolderProfitShare'],
 
-  invoicing: ['InvoiceType', 'Invoice', 'InvoiceItem'],
+  invoicing: ['Invoice', 'InvoiceItem'],
 
-  orders: ['OrderStatus', 'PurchaseOrder', 'PurchaseOrderStatusHistory', 'SaleOrder', 'SaleOrderStatusHistory'],
+  orders: ['PurchaseOrder', 'PurchaseOrderStatusHistory', 'SaleOrder', 'SaleOrderStatusHistory'],
 
-  expenses: ['ExpenseType', 'Expense', 'ExpenseStatus'],
+  expenses: ['Expense'],
 
-  payments: ['PaymentStatus', 'RelatedType', 'Payment'],
+  payments: ['Payment'],
 
   audit: ['AuditLog'],
 
@@ -421,14 +431,14 @@ export const packages = [
 ];
 
 export const fullAccessLifeTimeTenantData = {
-  name: 'Full Access',
+  name: 'Full Access Tenant',
   email: 'full.access@example.com',
   phone: '+8801300000000',
   address: '123 Main St, Springfield, IL 62704, USA',
 };
 
 export const freeTrialTenantData = {
-  name: 'Free Trial',
+  name: 'Free Trial Tenant',
   email: 'free.trial@example.com',
   phone: '+8801300000001',
   address: '123 Main St, Springfield, IL 62704, USA',

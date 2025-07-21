@@ -11,6 +11,19 @@ export const PackagePermissionResource: ResourceWithOptions = {
     navigation: {
       name: 'HRMS',
       icon: 'Users'
-    }
+    },
+    listProperties: ['package', 'permission'],
+    showProperties:['package', 'permission'],
+    actions: {
+      new: {
+        isVisible: false,
+      },
+      edit: {
+        isVisible: false,
+      },
+      delete: {
+        isVisible: false,
+      },
+    },
   },
 };

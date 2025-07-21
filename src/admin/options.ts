@@ -34,8 +34,6 @@ import { SaleOrderStatusHistoryResource } from './resources/sale-order-status-hi
 import { ExpenseTypeResource } from './resources/expense-type.config.adminjs.js';
 import { ExpenseResource } from './resources/expense.config.adminjs.js';
 import { ExpenseStatusResource } from './resources/expense-status.config.adminjs.js';
-import { PaymentStatusResource } from './resources/payment-status.config.adminjs.js';
-import { RelatedTypeResource } from './resources/related-type.config.adminjs.js';
 import { PaymentResource } from './resources/payment.config.adminjs.js';
 import { AuditLogResource } from './resources/audit-log.config.adminjs.js';
 import { SettingOptionResource } from './resources/setting-option.config.adminjs.js';
@@ -113,8 +111,6 @@ const options: AdminJSOptions = {
     ExpenseTypeResource,
     ExpenseResource,
     ExpenseStatusResource,
-    PaymentStatusResource,
-    RelatedTypeResource,
     PaymentResource,
     AuditLogResource,
     SettingOptionResource,
