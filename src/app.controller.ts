@@ -10,6 +10,5 @@ export class AppController {
   @Get()
   getHello(@Res() res: Response): void {
     res.redirect('/admin');
-    // return this.appService.getHello();
   }
 }
