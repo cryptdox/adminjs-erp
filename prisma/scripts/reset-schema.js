@@ -55,6 +55,9 @@ async function resetDatabase() {
     console.log('✅ Schema pushed:\n', stdout);
   } catch (err) {
     console.error('🔥 Reset failed:', err);
+    console.error('======================================');
+    console.error('❌ Please check the logs above for more details');
+    console.error('======================================');
     process.exit(1);
   } finally {
     await prisma.$disconnect();
