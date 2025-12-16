@@ -1,5 +1,5 @@
-const applicationCOnfiguration = {
+const applicationConfiguration = {
     companyName: 'CryptDox'
 }
 
-export default applicationCOnfiguration
+export default applicationConfiguration

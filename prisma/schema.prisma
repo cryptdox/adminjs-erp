@@ -146,7 +146,7 @@ enum SubscriptionPaymentStatus {
   DONE
 }
 
-enum SubscriptionPaymentFLow {
+enum SubscriptionPaymentFlow {
   CASH_IN
   CASH_OUT
 }
@@ -158,7 +158,7 @@ model SubscriptionPayment {
   subscriptionPaymentCouponId String?
   subscriptionPaymentCoupon   SubscriptionPaymentCoupon? @relation(fields: [subscriptionPaymentCouponId], references: [id])
   subscriptionPaymentStatus   SubscriptionPaymentStatus
-  subscriptionPaymentFLow     SubscriptionPaymentFLow
+  subscriptionPaymentFlow     SubscriptionPaymentFlow
   isActive                    Boolean                    @default(true)
   isAllowed                   Boolean                    @default(true)
   isDeleted                   Boolean                    @default(false)

@@ -40,7 +40,7 @@ import { SettingOptionResource } from './resources/setting-option.config.adminjs
 import { SettingTypeResource } from './resources/setting-type.config.adminjs.js';
 import { SettingResource } from './resources/setting.config.adminjs.js';
 import AdminComponents from './components/admin.components.js';
-import applicationCOnfiguration from '../utils/config.js';
+import applicationConfiguration from '../utils/config.js';
 import { UnitResource } from './resources/unit.config.adminjs.js';
 import { UnitConversionResource } from './resources/unit-conversion.config.adminjs.js';
 import { InvestmentProfileResource } from './resources/investment-profile.config.adminjs.js';
@@ -61,7 +61,7 @@ const options: AdminJSOptions = {
   branding: {
     logo: '/images/logo.svg',
     favicon: '/images/favicon.svg',
-    companyName: applicationCOnfiguration.companyName,
+    companyName: applicationConfiguration.companyName,
   },
   dashboard: {
     component: AdminComponents.Dashboard,

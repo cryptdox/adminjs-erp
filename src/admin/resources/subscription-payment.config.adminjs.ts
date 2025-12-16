@@ -12,7 +12,7 @@ export const SubscriptionPaymentResource: ResourceWithOptions = {
       name: 'HRMS',
       icon: 'Users',
     },
-    listProperties: ['subscriptionPaymentFLow', 'subscriptionPaymentStatus', 'amount', 'subscriptionPaymentCoupon'],
+    listProperties: ['subscriptionPaymentFlow', 'subscriptionPaymentStatus', 'amount', 'subscriptionPaymentCoupon'],
     showProperties: ['package', 'permission'],
     actions: {
       list: {

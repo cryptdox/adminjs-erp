@@ -28,7 +28,7 @@ import {
   DiscountType,
   Prisma,
   PrismaClient,
-  SubscriptionPaymentFLow,
+  SubscriptionPaymentFlow,
   SubscriptionPaymentStatus,
   UnitGroup,
 } from '@prisma/client';
@@ -363,7 +363,7 @@ export class CommonService {
         // subscriptionPaymentCoupon: {
         //   connect: { id: subscriptionPaymentCoupon.id },
         // },
-        subscriptionPaymentFLow: SubscriptionPaymentFLow.CASH_IN,
+        subscriptionPaymentFlow: SubscriptionPaymentFlow.CASH_IN,
         subscriptionPaymentStatus: SubscriptionPaymentStatus.DONE,
       },
     });
@@ -474,7 +474,7 @@ export class CommonService {
         // subscriptionPaymentCoupon: {
         //   connect: { id: subscriptionPaymentCoupon.id },
         // },
-        subscriptionPaymentFLow: SubscriptionPaymentFLow.CASH_IN,
+        subscriptionPaymentFlow: SubscriptionPaymentFlow.CASH_IN,
         subscriptionPaymentStatus: SubscriptionPaymentStatus.DONE,
       },
     });
